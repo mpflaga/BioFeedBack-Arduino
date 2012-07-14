@@ -118,14 +118,14 @@ void setup() {
 
 	configure_pins();
 
-#ifdef DEBUG
-	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-	DigitalPOT.SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-	delay(5000);
-	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-	DigitalPOT.SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-	delay(5000);
-#endif
+//#ifdef DEBUG
+//	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	delay(5000);
+//	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	delay(5000);
+//#endif
 
 	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 	DigitalPOT.SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
@@ -222,70 +222,38 @@ void loop(){
 //	Serial3.print("$$$");
 	Serial.print("BT_CD = ");
 	Serial.println(digitalReadFast(BT_CD));
-	while (!digitalReadFast(BT_CD));
-	Serial.println("BT Connect Detected.");
-	Serial.print("BT_CD = ");
-	Serial.println(digitalReadFast(BT_CD));
+//	while (!digitalReadFast(BT_CD));
+//	Serial.println("BT Connect Detected.");
+//	Serial.print("BT_CD = ");
+//	Serial.println(digitalReadFast(BT_CD));
 	
   while(1) {
-//  	Serial.print("BT_CD = ");
-//  	Serial.println(digitalReadFast(BT_CD));
-//		Serial3.println("BlueTooth Test, Type anything.BlueTooth Test, Type anything.BlueTooth Test, Type anything.BlueTooth Test, Type anything.");
-//  	delay (500);
-
-//		// Keyboard Test
-//		if ( (digitalRead(B_CH1) == LOW) ||
-//		(digitalReadFast(B_DISP) == LOW) ||
-//		(digitalReadFast(B_DWN) == LOW) ||
-//		(digitalReadFast(B_UP) == LOW) ||
-//		(digitalReadFast(B_CH2) == LOW) ||
-//		(digitalReadFast(B_AUDIO) == LOW) ||
-//		(digitalReadFast(B_CNTR) == LOW) ||
-//		(digitalReadFast(B_THR) == LOW) ||
-//		(digitalReadFast(B_ONOFF_SNS) == LOW) )
-//		{
-//			digitalWriteFast(pwm_led_bar[0], LOW);
-//		}
-//		else {
-//			digitalWriteFast(pwm_led_bar[0], HIGH);
-//		}
-//	
-//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
-//			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
-//				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
-//			}
-//			else {
-//				digitalWriteFast(button_test_leds[thisPin+1], LOW);
-//			}
-//		}
-//		// End Keyboard Test
-
-//		// read from port 0, send to port 1:
-//		while (Serial.available()) {
-//		  int inByte = Serial.read();
-//		  Serial3.write(inByte); 
-//		  Serial3.flush();
-//		}
-//		// read from port 1, send to port 0:
-//		while (Serial3.available()) {
-//		  int inByte = Serial3.read();
-//		  Serial.write(inByte); 
-//		  Serial.flush();
-//		}
-
-//		while (Serial.available()) {
-//			//delay(10);  //small delay to allow input buffer to fill
-//			char c = Serial.read();  //gets one byte from serial buffer
-//			readString += c;
-//		} //makes the string readString
-//		if (readString.length() >0) {
-//			Serial.print(readString); //prints string to serial port out
-//			readString=""; //clears variable for new input
-//		}
-
-//		while (Serial.available()) {
-//		  Serial3.write((uint8_t ) Serial.read()); 
-//		}	
+		// Keyboard Test
+		if ( (digitalRead(B_CH1) == LOW) ||
+		(digitalReadFast(B_DISP) == LOW) ||
+		(digitalReadFast(B_DWN) == LOW) ||
+		(digitalReadFast(B_UP) == LOW) ||
+		(digitalReadFast(B_CH2) == LOW) ||
+		(digitalReadFast(B_AUDIO) == LOW) ||
+		(digitalReadFast(B_CNTR) == LOW) ||
+		(digitalReadFast(B_THR) == LOW) ||
+		(digitalReadFast(B_ONOFF_SNS) == LOW) )
+		{
+			digitalWriteFast(pwm_led_bar[0], LOW);
+		}
+		else {
+			digitalWriteFast(pwm_led_bar[0], HIGH);
+		}
+	
+		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
+			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
+				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
+			}
+			else {
+				digitalWriteFast(button_test_leds[thisPin+1], LOW);
+			}
+		}
+		// End Keyboard Test
 
 //MPF STILL TRYING TO WORK OUT THE BT
 		while (Serial3.available()) {
