@@ -125,20 +125,27 @@ const int button_test_leds[] = {
 #define button_test_leds_count (uint8_t) sizeof(button_test_leds) / sizeof(int)
 
 float fmap(float, float, float, float, float);
-float GetBatteryVoltage(uint8_t);
 void PulseDigitalPOT(uint8_t, int8_t);
 void SetDigitalPOT(uint8_t, int8_t);
-void PulseLedBar();
-void CylonEye();
-void FadeLedBar();
-void BlinkAllButtonLeds();
-void BlinkEachButtonLeds();
-void BlinkEachButtonLeds();
-void PulseLedBar();
-void CylonEye();
-void FadeLedBar();
-void BlinkAllButtonLeds();
-void PreOperatingSelfTest();
 void configure_pins();
+
+
+class Sensor
+{
+public:
+	float GetBatteryVoltage(uint8_t);
+}
+;
+
+class PreOperatingSelfTest
+{
+public:
+	void PulseLedBar();
+	void CylonEye();
+	void FadeLedBar();
+	void BlinkAllButtonLeds();
+	void BlinkEachButtonLeds();
+}
+;
 
 #endif  // End BioFeedBack_h

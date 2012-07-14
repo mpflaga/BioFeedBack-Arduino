@@ -20,7 +20,7 @@ float fmap(float x, float in_min, float in_max, float out_min, float out_max)
  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 } 
 
-float GetBatteryVoltage(uint8_t channel)
+float Sensor::GetBatteryVoltage(uint8_t channel)
 {
 	return fmap(analogRead(channel), 0, (2*(BATTERY_CALIBRATION))-1, 0.0, (2*(REGULATOR_VOLTAGE)));
 }
@@ -53,7 +53,7 @@ void SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
 }	
 
 
-void BlinkEachButtonLeds() {
+void PreOperatingSelfTest::BlinkEachButtonLeds() {
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++) {
 		// turn the pin on:
 		digitalWrite(button_leds[thisPin], LOW);
@@ -71,17 +71,7 @@ void BlinkEachButtonLeds() {
 	}
 }
 
-void PulseLedBar () {
-	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
-		digitalWrite(pwm_led_bar[thisPin], LOW);
-	}
-	delay(POST_TIMER);
-	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
-		digitalWrite(pwm_led_bar[thisPin], HIGH);
-	}
-}
-
-void CylonEye() {
+void PreOperatingSelfTest::CylonEye() {
 	// loop from the lowest pin to the highest:
 	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++) {
 		// turn the pin on:
@@ -92,7 +82,7 @@ void CylonEye() {
 	}
 }
 
-void FadeLedBar() {
+void PreOperatingSelfTest::FadeLedBar() {
 	// fade in from min to max in increments of 5 points:
 	for(uint8_t  fadeValue = 255 ; fadeValue >= 200; fadeValue -=5) {
 		// sets the value (range from 0 to 255):
@@ -113,7 +103,7 @@ void FadeLedBar() {
 	}
 }
 
-void BlinkAllButtonLeds() {
+void PreOperatingSelfTest::BlinkAllButtonLeds() {
 	// BLINK all Button LED's at once, twice
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
 		digitalWrite(button_leds[thisPin], LOW);
@@ -124,34 +114,45 @@ void BlinkAllButtonLeds() {
 	}
 }
 
-void PreOperatingSelfTest() {
-
-#ifdef DEBUG
-	PulseLedBar();
+void PreOperatingSelfTest::PulseLedBar () {
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+		digitalWrite(pwm_led_bar[thisPin], LOW);
+	}
 	delay(POST_TIMER);
-	PulseLedBar();
-	CylonEye();
-#endif
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+		digitalWrite(pwm_led_bar[thisPin], HIGH);
+	}
+}
 
-	FadeLedBar();
 
-#ifdef DEBUG
-	BlinkAllButtonLeds();
-	delay(POST_TIMER);
-#endif
-
-	BlinkAllButtonLeds();
-
-#ifdef DEBUG
-	BlinkEachButtonLeds();
-#endif
-
-	// Report Battery Voltage
-	Serial.print("Battery Voltage = ");
-	Serial.print(GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-	Serial.println(" volts");
-
-} // PreOperatingSelfTest()
+//void PreOperatingSelfTest() {
+//
+//#ifdef DEBUG
+//	irsend.PulseLedBar();
+//	delay(POST_TIMER);
+//	irsend.PulseLedBar();
+//	CylonEye();
+//#endif
+//
+//	FadeLedBar();
+//
+//#ifdef DEBUG
+//	BlinkAllButtonLeds();
+//	delay(POST_TIMER);
+//#endif
+//
+//	BlinkAllButtonLeds();
+//
+//#ifdef DEBUG
+//	BlinkEachButtonLeds();
+//#endif
+//
+//	// Report Battery Voltage
+//	Serial.print("Battery Voltage = ");
+//	Serial.print(GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+//	Serial.println(" volts");
+//
+//} // PreOperatingSelfTest()
 
 void configure_pins() {
 	pinMode(LD_DIAG, OUTPUT);
@@ -222,3 +223,17 @@ void configure_pins() {
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

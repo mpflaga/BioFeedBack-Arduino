@@ -55,6 +55,9 @@
 #include <BioFeedBack.h>
 #include <math.h>
 
+PreOperatingSelfTest PreOperatingSelfTest;
+Sensor Sensor;
+
 //Create the variables to be used by SdFat Library
 Sd2Card card;
 SdVolume volume;
@@ -126,7 +129,33 @@ void setup() {
   Serial.begin(115200); //Use serial for debugging 
   Serial3.begin(115200); //Use serial for debugging 
 
-	PreOperatingSelfTest();
+//	PreOperatingSelfTest();
+
+#ifdef DEBUG
+	PreOperatingSelfTest.PulseLedBar();
+	delay(POST_TIMER);
+	PreOperatingSelfTest.PulseLedBar();
+	PreOperatingSelfTest.CylonEye();
+#endif
+
+	PreOperatingSelfTest.FadeLedBar();
+
+#ifdef DEBUG
+	PreOperatingSelfTest.BlinkAllButtonLeds();
+	delay(POST_TIMER);
+#endif
+
+	PreOperatingSelfTest.BlinkAllButtonLeds();
+
+#ifdef DEBUG
+	PreOperatingSelfTest.BlinkEachButtonLeds();
+#endif
+
+	// Report Battery Voltage
+	Serial.print("Battery Voltage = ");
+	Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+	Serial.println(" volts");
+//	PreOperatingSelfTest();
 
   Serial.println("MP3 Testing");
 
