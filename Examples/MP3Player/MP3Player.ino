@@ -113,6 +113,19 @@ void setup() {
 //  digitalWriteFast(MP3_RESET, LOW); //Put VS1053 into hardware reset
 
 	configure_pins();
+
+//	SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	delay(5000);
+//	SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	delay(5000);
+	SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+	SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+
+  Serial.begin(115200); //Use serial for debugging 
+  Serial3.begin(115200); //Use serial for debugging 
+
 	PreOperatingSelfTest();
 
   Serial.println("MP3 Testing");
@@ -225,7 +238,7 @@ void loop(){
 //			digitalWriteFast(pwm_led_bar[0], HIGH);
 //		}
 //	
-//		for (int thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
+//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
 //			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
 //				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
 //			}
@@ -259,15 +272,15 @@ void loop(){
 //		}
 
 //		while (Serial.available()) {
-//		  Serial3.write((int) Serial.read()); 
+//		  Serial3.write((uint8_t ) Serial.read()); 
 //		}	
 
 //MPF STILL TRYING TO WORK OUT THE BT
 		while (Serial3.available()) {
-		  Serial.write((int) Serial3.read()); 
+		  Serial.write((uint8_t ) Serial3.read()); 
 		}	
 		while (Serial.available()) {
-		  Serial3.write((int) Serial.read()); 
+		  Serial3.write((uint8_t ) Serial.read()); 
 		}	
 	}
 }
@@ -344,7 +357,7 @@ void playMP3(char* fileName) {
 
     //Once DREQ is released (high) we now feed 32 bytes of data to the VS1053 from our SD read buffer
     digitalWriteFast(MP3_XDCS, LOW); //Select Data
-    for(int y = 0 ; y < sizeof(mp3DataBuffer) ; y++) {
+    for(uint8_t  y = 0 ; y < sizeof(mp3DataBuffer) ; y++) {
       SPI.transfer(mp3DataBuffer[y]); // Send SPI byte
     }
 

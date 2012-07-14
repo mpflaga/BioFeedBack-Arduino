@@ -99,15 +99,15 @@
 
 const int pwm_led_bar[] = {
 4, 5, 2, 3, 6, 7, 8, 9, 10, 11, 12, 46, 45, 44 };
-#define pwm_led_bar_count sizeof(pwm_led_bar) / sizeof(int)
+#define pwm_led_bar_count (uint8_t) sizeof(pwm_led_bar) / sizeof(int)
 
 const int button_leds[] = {
 LD_TMP1, LD_GSR1, LD_DWN, LD_UP, LD_TMP2, LD_GSR2, LD_THR_BLW, LD_THR_ABV }; //
-#define button_leds_count sizeof(button_leds) / sizeof(int)
+#define button_leds_count (uint8_t) sizeof(button_leds) / sizeof(int)
 
 const int button_input[] = {
 B_CH1, B_DISP, B_DWN, B_UP, B_CH2, B_AUDIO, B_CNTR, B_THR, B_ONOFF_SNS };
-#define button_input_count sizeof(button_input) / sizeof(int)
+#define button_input_count (uint8_t) sizeof(button_input) / sizeof(int)
 
 const int button_test_leds[] = {
 	B_CH1,       LD_TMP1,
@@ -120,7 +120,7 @@ const int button_test_leds[] = {
 	B_THR,       LD_THR_ABV,
 	B_ONOFF_SNS, pwm_led_bar[1]
 };
-#define button_test_leds_count sizeof(button_test_leds) / sizeof(int)
+#define button_test_leds_count (uint8_t) sizeof(button_test_leds) / sizeof(int)
 
 float fmap(float, float, float, float, float);
 float GetBatteryVoltage(uint8_t);

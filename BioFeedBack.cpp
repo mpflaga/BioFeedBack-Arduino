@@ -35,7 +35,7 @@ void PulseDigitalPOT(uint8_t chipSelectPin, int8_t pulses) {
 	delayMicroseconds(1);
 	digitalWriteFast(chipSelectPin, LOW); //Enable Command to Target Device
 	delayMicroseconds(1);
-	for (int thisPin = 0; thisPin < abs(pulses); thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < abs(pulses); thisPin++)  {
 		digitalWriteFast(SPI_MOSI, HIGH); //Pulse Command High
 		delayMicroseconds(1);
 		digitalWriteFast(SPI_MOSI, LOW);  //Then Low and repeat if needed.
@@ -54,7 +54,7 @@ void SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
 
 
 void BlinkEachButtonLeds() {
-	for (int thisPin = 0; thisPin < button_leds_count; thisPin++) {
+	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++) {
 		// turn the pin on:
 		digitalWrite(button_leds[thisPin], LOW);
 		delay(POST_TIMER);
@@ -62,7 +62,7 @@ void BlinkEachButtonLeds() {
 		digitalWrite(button_leds[thisPin], HIGH);
 	}
 	// loop from the highest pin to the lowest:
-	for (int thisPin = button_leds_count - 1; thisPin >= 0; thisPin--) {
+	for (int8_t  thisPin = button_leds_count - 1; thisPin >= 0; thisPin--) {
 		// turn the pin on:
 		digitalWrite(button_leds[thisPin], LOW);
 		delay(POST_TIMER);
@@ -72,18 +72,18 @@ void BlinkEachButtonLeds() {
 }
 
 void PulseLedBar () {
-	for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
 		digitalWrite(pwm_led_bar[thisPin], LOW);
 	}
 	delay(POST_TIMER);
-	for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
 }
 
 void CylonEye() {
 	// loop from the lowest pin to the highest:
-	for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++) {
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++) {
 		// turn the pin on:
 		digitalWrite(pwm_led_bar[thisPin], LOW);
 		delay(CYLON_DELAY);
@@ -94,18 +94,18 @@ void CylonEye() {
 
 void FadeLedBar() {
 	// fade in from min to max in increments of 5 points:
-	for(int fadeValue = 255 ; fadeValue >= 200; fadeValue -=5) {
+	for(uint8_t  fadeValue = 255 ; fadeValue >= 200; fadeValue -=5) {
 		// sets the value (range from 0 to 255):
-		for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+		for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
 			analogWrite(pwm_led_bar[thisPin], fadeValue);
 		}
 		// wait for 30 milliseconds to see the dimming effect
 		delay(FADE_DELAY);
 	}
 	// fade out from max to min in increments of 5 points:
-	for(int fadeValue = 0 ; fadeValue <= 255; fadeValue +=5) {
+	for(int  fadeValue = 0 ; fadeValue <= 255; fadeValue +=5) {
 		// sets the value (range from 0 to 255):
-		for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+		for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
 			analogWrite(pwm_led_bar[thisPin], fadeValue);
 		}
 		// wait for 30 milliseconds to see the dimming effect
@@ -115,11 +115,11 @@ void FadeLedBar() {
 
 void BlinkAllButtonLeds() {
 	// BLINK all Button LED's at once, twice
-	for (int thisPin = 0; thisPin < button_leds_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
 		digitalWrite(button_leds[thisPin], LOW);
 	}
 	delay(POST_TIMER);
-	for (int thisPin = 0; thisPin < button_leds_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
 		digitalWrite(button_leds[thisPin], HIGH);
 	}
 }
@@ -140,10 +140,10 @@ void PreOperatingSelfTest() {
 
 //	BlinkEachButtonLeds();
 
-		// Report Battery Voltage
-    Serial.print("Battery Voltage = ");
-    Serial.print(GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-    Serial.println(" volts");
+	// Report Battery Voltage
+	Serial.print("Battery Voltage = ");
+	Serial.print(GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+	Serial.println(" volts");
 
 } // PreOperatingSelfTest()
 
@@ -199,32 +199,20 @@ void configure_pins() {
   digitalWriteFast(MP3_RESET, LOW);  //Initially Put VS1053 into hardware reset
 
 	// PinMode Buttons
-	for (int thisPin = 0; thisPin < button_input_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < button_input_count; thisPin++)  {
 		pinMode(button_input[thisPin], OUTPUT);
 		digitalWrite(button_input[thisPin], HIGH);
 	}
 
 	// PinMode and Clear LEDs
-	for (int thisPin = 0; thisPin < button_leds_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
 		pinMode(button_leds[thisPin], OUTPUT);
 		digitalWrite(button_leds[thisPin], HIGH);
 	}
 
 	// PinMode and Clear LED Bar
-	for (int thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
+	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
 		pinMode(pwm_led_bar[thisPin], OUTPUT);
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
-
-//	SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-//	SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-//	delay(5000);
-//	SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-//	SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-//	delay(5000);
-	SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
-	SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
-
-  Serial.begin(115200); //Use serial for debugging 
-  Serial3.begin(115200); //Use serial for debugging 
 }
