@@ -126,19 +126,25 @@ void BlinkAllButtonLeds() {
 
 void PreOperatingSelfTest() {
 
-//	PulseLedBar();
-//	delay(POST_TIMER);
-//	PulseLedBar();
-
-//	CylonEye();
+#ifdef DEBUG
+	PulseLedBar();
+	delay(POST_TIMER);
+	PulseLedBar();
+	CylonEye();
+#endif
 
 	FadeLedBar();
 
-//	BlinkAllButtonLeds();
-//	delay(POST_TIMER);
+#ifdef DEBUG
+	BlinkAllButtonLeds();
+	delay(POST_TIMER);
+#endif
+
 	BlinkAllButtonLeds();
 
-//	BlinkEachButtonLeds();
+#ifdef DEBUG
+	BlinkEachButtonLeds();
+#endif
 
 	// Report Battery Voltage
 	Serial.print("Battery Voltage = ");

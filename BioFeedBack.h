@@ -14,6 +14,8 @@
 #include "Arduino.h"
 #include <inttypes.h>
 
+#define DEBUG
+
 // Power Control output Pins
 #define PS_MODE      35  /* Drive Power Save Mode on TPS61200 */
 #define P_ONOFF_CTRL 36  /* Drive Power Save Mode on TPS61200 */
