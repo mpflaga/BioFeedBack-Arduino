@@ -57,6 +57,7 @@
 
 PreOperatingSelfTest PreOperatingSelfTest;
 Sensor Sensor;
+DigitalPOT	DigitalPOT;
 
 //Create the variables to be used by SdFat Library
 Sd2Card card;
@@ -117,45 +118,27 @@ void setup() {
 
 	configure_pins();
 
-//	SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-//	SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-//	delay(5000);
-//	SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-//	SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-//	delay(5000);
-	SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
-	SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+#ifdef DEBUG
+	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+	DigitalPOT.SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+	delay(5000);
+	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+	DigitalPOT.SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+	delay(5000);
+#endif
+
+	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+	DigitalPOT.SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 
   Serial.begin(115200); //Use serial for debugging 
   Serial3.begin(115200); //Use serial for debugging 
 
-//	PreOperatingSelfTest();
-
-#ifdef DEBUG
-	PreOperatingSelfTest.PulseLedBar();
-	delay(POST_TIMER);
-	PreOperatingSelfTest.PulseLedBar();
-	PreOperatingSelfTest.CylonEye();
-#endif
-
-	PreOperatingSelfTest.FadeLedBar();
-
-#ifdef DEBUG
-	PreOperatingSelfTest.BlinkAllButtonLeds();
-	delay(POST_TIMER);
-#endif
-
-	PreOperatingSelfTest.BlinkAllButtonLeds();
-
-#ifdef DEBUG
-	PreOperatingSelfTest.BlinkEachButtonLeds();
-#endif
+	PreOperatingSelfTest.post();
 
 	// Report Battery Voltage
 	Serial.print("Battery Voltage = ");
 	Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
 	Serial.println(" volts");
-//	PreOperatingSelfTest();
 
   Serial.println("MP3 Testing");
 

@@ -25,7 +25,7 @@ float Sensor::GetBatteryVoltage(uint8_t channel)
 	return fmap(analogRead(channel), 0, (2*(BATTERY_CALIBRATION))-1, 0.0, (2*(REGULATOR_VOLTAGE)));
 }
 
-void PulseDigitalPOT(uint8_t chipSelectPin, int8_t pulses) {
+void DigitalPOT::PulseDigitalPOT(uint8_t chipSelectPin, int8_t pulses) {
   pinModeFast(SPI_MOSI, OUTPUT); // Condition the MOSI as Output to U/D pin
 	if (pulses > 0) {
 		digitalWriteFast(SPI_MOSI, UP); // Prime U/D pin on direction
@@ -44,7 +44,7 @@ void PulseDigitalPOT(uint8_t chipSelectPin, int8_t pulses) {
 	digitalWriteFast(chipSelectPin, HIGH); //Negate Command to Device
 }
 
-void SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
+void DigitalPOT::SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
 	// Step 1; Force Digital POT Value to a known value of ZERO.
 	PulseDigitalPOT(chipSelectPin, -65); // POT's range is 64
 	delayMicroseconds(1);
@@ -123,6 +123,30 @@ void PreOperatingSelfTest::PulseLedBar () {
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
 }
+
+void PreOperatingSelfTest::post () {
+
+#ifdef DEBUG
+	PulseLedBar();
+	delay(POST_TIMER);
+	PulseLedBar();
+	CylonEye();
+#endif
+
+	FadeLedBar();
+
+#ifdef DEBUG
+	BlinkAllButtonLeds();
+	delay(POST_TIMER);
+#endif
+
+	BlinkAllButtonLeds();
+
+#ifdef DEBUG
+	BlinkEachButtonLeds();
+#endif
+
+} //	PreOperatingSelfTest();
 
 
 //void PreOperatingSelfTest() {

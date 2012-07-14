@@ -125,8 +125,6 @@ const int button_test_leds[] = {
 #define button_test_leds_count (uint8_t) sizeof(button_test_leds) / sizeof(int)
 
 float fmap(float, float, float, float, float);
-void PulseDigitalPOT(uint8_t, int8_t);
-void SetDigitalPOT(uint8_t, int8_t);
 void configure_pins();
 
 
@@ -140,12 +138,23 @@ public:
 class PreOperatingSelfTest
 {
 public:
+	void post();
+private:
 	void PulseLedBar();
 	void CylonEye();
 	void FadeLedBar();
 	void BlinkAllButtonLeds();
 	void BlinkEachButtonLeds();
 }
+;
+
+class DigitalPOT
+{
+public:
+	void SetDigitalPOT(uint8_t, int8_t);
+private:
+	void PulseDigitalPOT(uint8_t, int8_t);
+} 
 ;
 
 #endif  // End BioFeedBack_h
