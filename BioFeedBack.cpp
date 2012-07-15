@@ -58,12 +58,13 @@ void DigitalPOT::SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
 	PulseDigitalPOT(chipSelectPin, value);
 }	
 void DigitalPGA::WriteRegister(uint8_t chipSelectPin, int8_t Gain) {
-	digitalWriteFast(TMPPGA_CS, LOW); //Select control
+//	pinModeFast(chipSelectPin, OUTPUT);
+	digitalWriteFast(chipSelectPin, LOW); //Select control
 	SPI.transfer(B01000000); //Write instruction byte
 	SPI.transfer(Gain); //Write Data byte
-	digitalWriteFast(TMPPGA_CS, HIGH); //Select control
+	digitalWrite(chipSelectPin, HIGH); //Select control
 #ifdef DEBUG
-	Serial.print("TMP PGA GAIN = 8");
+	Serial.print("PGA GAIN = 8");
 	Serial.println(Gain, DEC);
 #endif
 }
@@ -218,7 +219,7 @@ void configure_pins() {
 	pinMode(TMPOFFSET_CS ,OUTPUT );
 	pinMode(GSROFFSET_CS ,OUTPUT );
 	pinMode(TMPPGA_CS ,OUTPUT );
-	pinMode(TMPPGA_CS ,OUTPUT );
+	pinMode(GSRPGA_CS ,OUTPUT );
 // May not need to set PinMode of these Analog Input- MPF
 //	pinMode(ANA_GSR ,INPUT );
 //	pinMode(ANA_TMP ,INPUT );
@@ -236,7 +237,7 @@ void configure_pins() {
   digitalWriteFast(TMPOFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(GSROFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
-  digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
+  digitalWriteFast(GSRPGA_CS, HIGH);   //Initially Deselect PGA
 
   digitalWriteFast(MP3_XCS, HIGH);   //Initially Deselect Control
   digitalWriteFast(MP3_XDCS, HIGH);  //Initially Deselect Data

@@ -229,10 +229,10 @@ void loop(){
 //	Serial.println(digitalReadFast(BT_CD));
 	
 	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
-		DigitalPGA.WriteRegister(TMPPGA_CS, thisGain);
-		Serial.print("TempSensor Voltage = ");
+		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
+		Serial.println("Sensor Voltage = ");
 		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
-			Serial.print(Sensor.GetTMPVoltage(ANA_TMP), 3); // two decimal places
+			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
 			Serial.println(" volts");
 			delay(100);
 		}
