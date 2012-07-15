@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include "Arduino.h"
 #include <digitalWriteFast.h>
+#include <SPI.h>
 
 float fmap(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -23,6 +24,11 @@ float fmap(float x, float in_min, float in_max, float out_min, float out_max)
 float Sensor::GetBatteryVoltage(uint8_t channel)
 {
 	return fmap(analogRead(channel), 0, (2*(BATTERY_CALIBRATION))-1, 0.0, (2*(REGULATOR_VOLTAGE)));
+}
+
+float Sensor::GetTMPVoltage(uint8_t channel)
+{
+	return fmap(analogRead(channel), 0, (2*(BATTERY_CALIBRATION))-1, 0.0, ((REGULATOR_VOLTAGE)));
 }
 
 void DigitalPOT::PulseDigitalPOT(uint8_t chipSelectPin, int8_t pulses) {
@@ -51,7 +57,16 @@ void DigitalPOT::SetDigitalPOT(uint8_t chipSelectPin, int8_t value) {
 	// Step 2; Place Digital POT Value to desired Value.
 	PulseDigitalPOT(chipSelectPin, value);
 }	
-
+void DigitalPGA::WriteRegister(uint8_t chipSelectPin, int8_t Gain) {
+	digitalWriteFast(TMPPGA_CS, LOW); //Select control
+	SPI.transfer(B01000000); //Write instruction byte
+	SPI.transfer(Gain); //Write Data byte
+	digitalWriteFast(TMPPGA_CS, HIGH); //Select control
+#ifdef DEBUG
+	Serial.print("TMP PGA GAIN = 8");
+	Serial.println(Gain, DEC);
+#endif
+}
 
 void PreOperatingSelfTest::BlinkEachButtonLeds() {
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++) {
@@ -200,10 +215,10 @@ void configure_pins() {
 	pinMode(BT_CD ,INPUT );
 	digitalWrite(BT_CD, LOW);    //Disable internal pull up resistor.
 	pinMode(BT_RST ,OUTPUT );
-	pinMode(TMPOF_CS ,OUTPUT );
-	pinMode(GSROF_CS ,OUTPUT );
-	pinMode(TMP_CS ,OUTPUT );
-	pinMode(GSR_CS ,OUTPUT );
+	pinMode(TMPOFFSET_CS ,OUTPUT );
+	pinMode(GSROFFSET_CS ,OUTPUT );
+	pinMode(TMPPGA_CS ,OUTPUT );
+	pinMode(TMPPGA_CS ,OUTPUT );
 // May not need to set PinMode of these Analog Input- MPF
 //	pinMode(ANA_GSR ,INPUT );
 //	pinMode(ANA_TMP ,INPUT );
@@ -218,15 +233,15 @@ void configure_pins() {
 //  digitalWriteFast(BT_CTS, HIGH);   //Initially Disable(HIGH) Radio Transmission
   digitalWriteFast(BT_CTS, LOW);   //Leave Enabled, as to span resets for Debug.
   digitalWriteFast(BT_RST, LOW);   //Initially Hold Radio in Reset
-  digitalWriteFast(TMPOF_CS, HIGH); //Initially Deselect DAC
-  digitalWriteFast(GSROF_CS, HIGH); //Initially Deselect DAC
-  digitalWriteFast(TMP_CS, HIGH);   //Initially Deselect PGA
-  digitalWriteFast(GSR_CS, HIGH);   //Initially Deselect PGA
+  digitalWriteFast(TMPOFFSET_CS, HIGH); //Initially Deselect DAC
+  digitalWriteFast(GSROFFSET_CS, HIGH); //Initially Deselect DAC
+  digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
+  digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
 
   digitalWriteFast(MP3_XCS, HIGH);   //Initially Deselect Control
   digitalWriteFast(MP3_XDCS, HIGH);  //Initially Deselect Data
   digitalWriteFast(SDCARD_CS, HIGH); //Initially Deselect SD Card
-  digitalWriteFast(TMPOF_CS, HIGH);  //Initially Deselect Data
+  digitalWriteFast(TMPOFFSET_CS, HIGH);  //Initially Deselect Data
   digitalWriteFast(MP3_RESET, LOW);  //Initially Put VS1053 into hardware reset
 
 	// PinMode Buttons
@@ -247,17 +262,3 @@ void configure_pins() {
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

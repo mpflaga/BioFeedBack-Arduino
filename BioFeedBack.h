@@ -79,10 +79,10 @@
 #define BT_RST      23      //PA1 Output, Active Low,  Resets BlueTooth Transciever
 #define BT_CD       72      //PJ2 Input, 
 
-#define TMPOF_CS    71      //PH7 Output, Active Low,  Enables MOSI of Offset DAC of Tempurature
-#define GSROF_CS    53      //PB0 Output, Active Low,  Enables MOSI of Offset DAC of GSR
-#define TMP_CS      82      //PG3 Output, Active Low,  Enables MOSI of PGA of TMP
-#define GSR_CS      84      //PE6 Output, Active Low,  Enables MOSI of PGA of GSR
+#define TMPOFFSET_CS    71      //PH7 Output, Active Low,  Enables MOSI of Offset DAC of Tempurature
+#define GSROFFSET_CS    53      //PB0 Output, Active Low,  Enables MOSI of Offset DAC of GSR
+#define TMPPGA_CS      82      //PG3 Output, Active Low,  Enables MOSI of PGA of TMP
+#define GSRPGA_CS      84      //PE6 Output, Active Low,  Enables MOSI of PGA of GSR
 
 #define ANA_GSR     A0      //(54)PF0 Analog Input, from GSR Sensor.
 #define ANA_TMP     A1      //(55)PF1 Analog Input, from TMP Sensor.
@@ -132,6 +132,7 @@ class Sensor
 {
 public:
 	float GetBatteryVoltage(uint8_t);
+	float GetTMPVoltage(uint8_t);
 }
 ;
 
@@ -154,6 +155,26 @@ public:
 	void SetDigitalPOT(uint8_t, int8_t);
 private:
 	void PulseDigitalPOT(uint8_t, int8_t);
+} 
+;
+
+#define Gain_of_01 B00000000
+#define Gain_of_02 B00000001
+#define Gain_of_04 B00000010
+#define Gain_of_05 B00000011
+#define Gain_of_08 B00000100
+#define Gain_of_10 B00000101
+#define Gain_of_16 B00000110
+#define Gain_of_32 B00000111
+
+const int PGA_Gains[] = {
+Gain_of_01, Gain_of_02, Gain_of_04, Gain_of_05, Gain_of_08, Gain_of_10, Gain_of_16, Gain_of_32};
+#define PGA_Gains_count (uint8_t) sizeof(PGA_Gains) / sizeof(int)
+
+class DigitalPGA
+{
+public:
+	void WriteRegister(uint8_t, int8_t);
 } 
 ;
 

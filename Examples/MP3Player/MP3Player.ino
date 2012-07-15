@@ -58,6 +58,7 @@
 PreOperatingSelfTest PreOperatingSelfTest;
 Sensor Sensor;
 DigitalPOT	DigitalPOT;
+DigitalPGA	DigitalPGA;
 
 //Create the variables to be used by SdFat Library
 Sd2Card card;
@@ -119,16 +120,16 @@ void setup() {
 	configure_pins();
 
 //#ifdef DEBUG
-//	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
-//	DigitalPOT.SetDigitalPOT(GSROF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(GSROFFSET_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
 //	delay(5000);
-//	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
-//	DigitalPOT.SetDigitalPOT(GSROF_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(75, 0, 100, 0, MCP4013_FULL_SCALE));
+//	DigitalPOT.SetDigitalPOT(GSROFFSET_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
 //	delay(5000);
 //#endif
 
-	DigitalPOT.SetDigitalPOT(TMPOF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
-	DigitalPOT.SetDigitalPOT(GSROF_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
+	DigitalPOT.SetDigitalPOT(GSROFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 
   Serial.begin(115200); //Use serial for debugging 
   Serial3.begin(115200); //Use serial for debugging 
@@ -227,6 +228,17 @@ void loop(){
 //	Serial.print("BT_CD = ");
 //	Serial.println(digitalReadFast(BT_CD));
 	
+	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
+		DigitalPGA.WriteRegister(TMPPGA_CS, thisGain);
+		Serial.print("TempSensor Voltage = ");
+		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
+			Serial.print(Sensor.GetTMPVoltage(ANA_TMP), 3); // two decimal places
+			Serial.println(" volts");
+			delay(100);
+		}
+		delay(2000);
+	}
+
   while(1) {
 		// Keyboard Test
 		if ( (digitalRead(B_CH1) == LOW) ||
