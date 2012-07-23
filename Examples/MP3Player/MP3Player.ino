@@ -59,6 +59,7 @@ PreOperatingSelfTest PreOperatingSelfTest;
 Sensor Sensor;
 DigitalPOT	DigitalPOT;
 DigitalPGA	DigitalPGA;
+HW_configuration	HW_configuration;
 
 //Create the variables to be used by SdFat Library
 Sd2Card card;
@@ -117,7 +118,7 @@ void setup() {
 //  digitalWriteFast(MP3_XDCS, HIGH); //Deselect Data
 //  digitalWriteFast(MP3_RESET, LOW); //Put VS1053 into hardware reset
 
-	configure_pins();
+	HW_configuration.BoardsPinMode();
 
 //#ifdef DEBUG
 //	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
@@ -228,16 +229,16 @@ void loop(){
 //	Serial.print("BT_CD = ");
 //	Serial.println(digitalReadFast(BT_CD));
 	
-	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
-		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
-		Serial.println("Sensor Voltage = ");
-		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
-			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
-			Serial.println(" volts");
-			delay(100);
-		}
-		delay(2000);
-	}
+//	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
+//		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
+//		Serial.println("Sensor Voltage = ");
+//		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
+//			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
+//			Serial.println(" volts");
+//			delay(100);
+//		}
+//		delay(2000);
+//	}
 
   while(1) {
 		// Keyboard Test
@@ -264,7 +265,10 @@ void loop(){
 			else {
 				digitalWriteFast(button_test_leds[thisPin+1], LOW);
 			}
-		}
+		if (digitalReadFast(B_ONOFF_SNS) == LOW)
+		{
+			digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+		}		}
 		// End Keyboard Test
 
 //MPF STILL TRYING TO WORK OUT THE BT

@@ -194,7 +194,7 @@ void PreOperatingSelfTest::post () {
 //
 //} // PreOperatingSelfTest()
 
-void configure_pins() {
+void HW_configuration::BoardsPinMode () {
 	pinMode(LD_DIAG, OUTPUT);
 	pinMode(PS_MODE, INPUT);      //Pin #55(PC2) PS_MODE
 	pinMode(P_ONOFF_CTRL, OUTPUT);     //Pin #54(PC1) P_ONOFF_CTRL
@@ -227,6 +227,7 @@ void configure_pins() {
 
 	// Set the Initial Value of All Input Pins.
 	digitalWriteFast(P_ONOFF_CTRL, HIGH);  // set the Power On!
+	digitalWriteFast(PS_MODE, HIGH);  // Disable the Power Save Mode
 // Should not need to set Initial Value of UARTS - MPF
 //  digitalWriteFast(MIDI_RX, HIGH);
 //  digitalWriteFast(BT_RX, HIGH);
