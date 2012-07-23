@@ -264,3 +264,103 @@ void HW_configuration::BoardsPinMode () {
 		digitalWrite(pwm_led_bar[thisPin], HIGH);
 	}
 }
+
+
+
+//Write to VS10xx register
+//SCI: Data transfers are always 16bit. When a new SCI operation comes in 
+//DREQ goes low. We then have to wait for DREQ to go high again.
+//XCS should be low for the full duration of operation.
+void Mp3::WriteRegister(unsigned char addressbyte, unsigned char highbyte, unsigned char lowbyte){
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating IC is available
+  digitalWriteFast(MP3_XCS, LOW); //Select control
+
+  //SCI consists of instruction byte, address byte, and 16-bit data word.
+  SPI.transfer(0x02); //Write instruction
+  SPI.transfer(addressbyte);
+  SPI.transfer(highbyte);
+  SPI.transfer(lowbyte);
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating command is complete
+  digitalWriteFast(MP3_XCS, HIGH); //Deselect Control
+}
+
+//Read the 16-bit value of a VS10xx register
+unsigned int Mp3::ReadRegister (unsigned char addressbyte){
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating IC is available
+  digitalWriteFast(MP3_XCS, LOW); //Select control
+
+  //SCI consists of instruction byte, address byte, and 16-bit data word.
+  SPI.transfer(0x03);  //Read instruction
+  SPI.transfer(addressbyte);
+
+  char response1 = SPI.transfer(0xFF); //Read the first byte
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating command is complete
+  char response2 = SPI.transfer(0xFF); //Read the second byte
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating command is complete
+
+  digitalWriteFast(MP3_XCS, HIGH); //Deselect Control
+
+  int resultvalue = response1 << 8;
+  resultvalue |= response2;
+  return resultvalue;
+}
+
+//Set VS10xx Volume Register
+void Mp3::SetVolume(unsigned char leftchannel, unsigned char rightchannel){
+  WriteRegister(SCI_VOL, leftchannel, rightchannel);
+}
+
+void Mp3::Initialize() {
+
+  Serial.println("MP3 Testing");
+
+  //We have no need to setup SPI for VS1053 because this has already been done by the SDfatlib
+
+  //From page 12 of datasheet, max SCI reads are CLKI/7. Input clock is 12.288MHz. 
+  //Internal clock multiplier is 1.0x after power up. 
+  //Therefore, max SPI speed is 1.75MHz. We will use 1MHz to be safe.
+  SPI.setClockDivider(SPI_CLOCK_DIV16); //Set SPI bus speed to 1MHz (16MHz / 16 = 1MHz)
+  SPI.transfer(0xFF); //Throw a dummy byte at the bus
+  //Initialize VS1053 chip 
+  delay(10);
+  digitalWriteFast(MP3_RESET, HIGH); //Bring up VS1053
+  digitalWriteFast(AUDIO_AMP_SHTDWN, HIGH); //Enable Audio Output
+
+  //delay(10); //We don't need this delay because any register changes will check for a high DREQ
+
+  //SetVolume(10, 10); //Set initial volume (20 = -10dB) LOUD
+  SetVolume(40, 40); //Set initial volume (20 = -10dB) Manageable
+  //SetVolume(80, 80); //Set initial volume (20 = -10dB) More quiet
+
+  //Let's check the status of the VS1053
+  int MP3Mode = ReadRegister(SCI_MODE);
+  int MP3Status = ReadRegister(SCI_STATUS);
+  int MP3Clock = ReadRegister(SCI_CLOCKF);
+
+  Serial.print("SCI_Mode (0x4800) = 0x");
+  Serial.println(MP3Mode, HEX);
+
+  Serial.print("SCI_Status (0x48) = 0x");
+  Serial.println(MP3Status, HEX);
+
+  int vsVersion = (MP3Status >> 4) & 0x000F; //Mask out only the four version bits
+  Serial.print("VS Version (VS1053 is 4) = ");
+  Serial.println(vsVersion, DEC); //The 1053B should respond with 4. VS1001 = 0, VS1011 = 1, VS1002 = 2, VS1003 = 3
+
+  Serial.print("SCI_ClockF = 0x");
+  Serial.println(MP3Clock, HEX);
+
+  //Now that we have the VS1053 up and running, increase the internal clock multiplier and up our SPI rate
+  WriteRegister(SCI_CLOCKF, 0x60, 0x00); //Set multiplier to 3.0x
+
+  //From page 12 of datasheet, max SCI reads are CLKI/7. Input clock is 12.288MHz. 
+  //Internal clock multiplier is now 3x.
+  //Therefore, max SPI speed is 5MHz. 4MHz will be safe.
+  SPI.setClockDivider(SPI_CLOCK_DIV4); //Set SPI bus speed to 4MHz (16MHz / 4 = 4MHz)
+
+  MP3Clock = ReadRegister(SCI_CLOCKF);
+  Serial.print("SCI_ClockF = 0x");
+  Serial.println(MP3Clock, HEX);
+	UCSR2C = UCSR2C | B00001000;
+  //MP3 IC setup complete
+}
