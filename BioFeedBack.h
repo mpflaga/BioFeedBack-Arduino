@@ -14,6 +14,9 @@
 #include "Arduino.h"
 #include <inttypes.h>
 
+#define TRUE  0
+#define FALSE  1
+
 #define DEBUG
 
 // Power Control output Pins
@@ -210,7 +213,8 @@ public:
 	unsigned int ReadRegister (unsigned char);
 	void WriteRegister(unsigned char, unsigned char, unsigned char);
 	void Initialize();
-} 
+	void Play(char*);
+}
 ;
 
 #endif  // End BioFeedBack_h

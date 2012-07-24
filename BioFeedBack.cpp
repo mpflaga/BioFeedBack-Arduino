@@ -9,12 +9,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#include "BioFeedBack.h"
+#include <BioFeedBack.h>
 #include <inttypes.h>
 #include "Arduino.h"
 #include <digitalWriteFast.h>
 #include <SPI.h>
+#include <SdFat.h>
+#include <SdFatUtil.h> 
+
+Sd2Card card;
+SdVolume volume;
+SdFile root;
+SdFile track;
 
 float fmap(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -265,8 +271,6 @@ void HW_configuration::BoardsPinMode () {
 	}
 }
 
-
-
 //Write to VS10xx register
 //SCI: Data transfers are always 16bit. When a new SCI operation comes in 
 //DREQ goes low. We then have to wait for DREQ to go high again.
@@ -311,6 +315,11 @@ void Mp3::SetVolume(unsigned char leftchannel, unsigned char rightchannel){
 }
 
 void Mp3::Initialize() {
+  //Setup SD card interface
+  pinMode(SS_PIN, OUTPUT);       //Pin 10 must be set as an output for the SD communication to work.
+  if (!card.init(SPI_FULL_SPEED, SDCARD_CS))  Serial.println("Error: Card init"); //Initialize the SD card and configure the I/O pins.
+  if (!volume.init(&card)) Serial.println("Error: Volume ini"); //Initialize a volume on the SD card.
+  if (!root.openRoot(&volume)) Serial.println("Error: Opening root"); //Open the root directory in the volume. 
 
   Serial.println("MP3 Testing");
 
@@ -363,4 +372,94 @@ void Mp3::Initialize() {
   Serial.println(MP3Clock, HEX);
 	UCSR2C = UCSR2C | B00001000;
   //MP3 IC setup complete
+}
+
+//PlayMP3 pulls 32 byte chunks from the SD card and throws them at the VS1053
+//We monitor the DREQ (data request pin). If it goes low then we determine if
+//we need new data or not. If yes, pull new from SD card. Then throw the data
+//at the VS1053 until it is full.
+void Mp3::Play(char* fileName) {
+	char errorMsg[100]; //This is a generic array used for sprintf of error messages
+
+  if (!track.open(&root, fileName, O_READ)) { //Open the file in read mode.
+    sprintf(errorMsg, "Failed to open %s", fileName);
+    Serial.println(errorMsg);
+    return;
+  }
+
+  Serial.println("Track open");
+
+  uint8_t mp3DataBuffer[32]; //Buffer of 32 bytes. VS1053 can take 32 bytes at a go.
+  //track.read(mp3DataBuffer, sizeof(mp3DataBuffer)); //Read the first 32 bytes of the song
+  int need_data = TRUE; 
+  long replenish_time = millis();
+
+  Serial.println("Start MP3 decoding");
+
+  while(1) {
+    while(!digitalRead(MP3_DREQ)) { 
+      //DREQ is low while the receive buffer is full
+      //You can do something else here, the buffer of the MP3 is full and happy.
+      //Maybe set the volume or test to see how much we can delay before we hear audible glitches
+
+      //If the MP3 IC is happy, but we need to read new data from the SD, now is a great time to do so
+      if(need_data == TRUE) {
+        if(!track.read(mp3DataBuffer, sizeof(mp3DataBuffer))) { //Try reading 32 new bytes of the song
+          //Oh no! There is no data left to read!
+          //Time to exit
+          break;
+        }
+        need_data = FALSE;
+      }
+
+      //Serial.println("."); //Print a character to show we are doing nothing
+
+      //This is here to show how much time is spent transferring new bytes to the VS1053 buffer. Relies on replenish_time below.
+      Serial.print("Time to replenish buffer: ");
+      Serial.print(millis() - replenish_time, DEC);
+      Serial.print("ms");
+
+      //Test to see just how much we can do before the audio starts to glitch
+      long start_time = millis();
+      //delay(150); //Do NOTHING - audible glitches
+      //delay(135); //Do NOTHING - audible glitches
+      //delay(120); //Do NOTHING - barely audible glitches
+      delay(100); //Do NOTHING - sounds fine
+      Serial.print(" Idle time: ");
+      Serial.print(millis() - start_time, DEC);
+      Serial.println("ms");
+      //Look at that! We can actually do quite a lot without the audio glitching
+
+      //Now that we've completely emptied the VS1053 buffer (2048 bytes) let's see how much 
+      //time the VS1053 keeps the DREQ line high, indicating it needs to be fed
+      replenish_time = millis();
+    }
+
+
+    if(need_data == TRUE){ //This is here in case we haven't had any free time to load new data
+      if(!track.read(mp3DataBuffer, sizeof(mp3DataBuffer))) { //Go out to SD card and try reading 32 new bytes of the song
+        //Oh no! There is no data left to read!
+        //Time to exit
+        break;
+      }
+      need_data = FALSE;
+    }
+
+    //Once DREQ is released (high) we now feed 32 bytes of data to the VS1053 from our SD read buffer
+    digitalWriteFast(MP3_XDCS, LOW); //Select Data
+    for(uint8_t  y = 0 ; y < sizeof(mp3DataBuffer) ; y++) {
+      SPI.transfer(mp3DataBuffer[y]); // Send SPI byte
+    }
+
+    digitalWriteFast(MP3_XDCS, HIGH); //Deselect Data
+    need_data = TRUE; //We've just dumped 32 bytes into VS1053 so our SD read buffer is empty. Set flag so we go get more data
+  }
+
+  while(!digitalRead(MP3_DREQ)) ; //Wait for DREQ to go high indicating transfer is complete
+  digitalWriteFast(MP3_XDCS, HIGH); //Deselect Data
+  
+  track.close(); //Close out this track
+
+  sprintf(errorMsg, "Track %s done!", fileName);
+  Serial.println(errorMsg);
 }
