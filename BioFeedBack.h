@@ -44,7 +44,9 @@
 #define B_AUDIO             80   /* S104 to PD6(not MegaPro/Seeduino) */
 #define B_DISP              70   /* S108 to PH2(not MegaPro/Seeduino) */
 #define B_ONOFF_SNS         37   /* S101 to PC0 */
-                            
+
+#define BUTTON_DEBOUNCE_PERIOD 20 //ms
+
 // SPI Pins                 
 #define SPI_MISO            50      //PB3 input
 #define SPI_MOSI            51      //PB2 output
@@ -216,5 +218,22 @@ public:
 	void Play(char*);
 }
 ;
+
+#define CONFIG_START 32
+#define CONFIG_VERSION "ls1"
+
+typedef struct {
+  // The variables of your settings
+  int a, b;
+  char c;
+  long d;
+  float e[6];
+  // This is for mere detection if they are your settings
+  char version_of_program[4]; // it is the last variable of the 
+}
+StoreStruct_t;
+
+void loadConfig();
+void saveConfig();
 
 #endif  // End BioFeedBack_h

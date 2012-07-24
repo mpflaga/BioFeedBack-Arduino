@@ -16,6 +16,7 @@
 #include <SPI.h>
 #include <SdFat.h>
 #include <SdFatUtil.h> 
+#include <Bounce.h>
 
 Sd2Card card;
 SdVolume volume;
@@ -374,6 +375,10 @@ void Mp3::Initialize() {
   //MP3 IC setup complete
 }
 
+Bounce mp3_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce mp3_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD ); 
+
+
 //PlayMP3 pulls 32 byte chunks from the SD card and throws them at the VS1053
 //We monitor the DREQ (data request pin). If it goes low then we determine if
 //we need new data or not. If yes, pull new from SD card. Then throw the data
@@ -401,6 +406,19 @@ void Mp3::Play(char* fileName) {
       //DREQ is low while the receive buffer is full
       //You can do something else here, the buffer of the MP3 is full and happy.
       //Maybe set the volume or test to see how much we can delay before we hear audible glitches
+      
+      
+			if (mp3_dwn.update()) {
+				if (mp3_dwn.fallingEdge())	{
+					Serial.println("mp3_dwn pressed");
+				}	
+			}	
+			if (mp3_up.update()) {
+				if (mp3_up.fallingEdge())	{
+					Serial.println("mp3_up pressed");
+				}	
+			}	
+      
 
       //If the MP3 IC is happy, but we need to read new data from the SD, now is a great time to do so
       if(need_data == TRUE) {

@@ -1,49 +1,5 @@
 /*
- 4-28-2011
- Spark Fun Electronics 2011
- Nathan Seidle
- 
- This code is public domain but you buy me a beer if you use this and we meet someday (Beerware license).
- 
- This example code plays a MP3 from the SD card called 'track001.mp3'. The theory is that you can load a 
- microSD card up with a bunch of MP3s and then play a given 'track' depending on some sort of input such 
- as which pin is pulled low.
- 
- It relies on the sdfatlib from Bill Greiman: 
- http://code.google.com/p/sdfatlib/
- You will need to download and install his library. To compile, you MUST change Sd2PinMap.h of the SDfatlib! 
- The default SS_PIN = 10;. You must change this line under the ATmega328/Arduino area of code to 
- uint8_t const SS_PIN = 9;. This will cause the sdfatlib to use pin 9 as the 'chip select' for the 
- microSD card on pin 9 of the Arduino so that the layout of the shield works.
- 
- Attach the shield to an Arduino. Load code (after editing Sd2PinMap.h) then open the terminal at 57600bps. This 
- example shows that it takes ~30ms to load up the VS1053 buffer. We can then do whatever we want for ~100ms 
- before we need to return to filling the buffer (for another 30ms).
- 
- This code is heavily based on the example code I wrote to control the MP3 shield found here:
- http://www.sparkfun.com/products/9736
- This example code extends the previous example by reading the MP3 from an SD card and file rather than from internal
- memory of the ATmega. Because the current MP3 shield does not have a microSD socket, you will need to add the microSD 
- shield to your Arduino stack.
- 
- The main gotcha from all of this is that you have to make sure your CS pins for each device on an SPI bus is carefully
- declared. For the SS pin (aka CS) on the SD FAT libaray, you need to correctly set it within Sd2PinMap.h. The default 
- pin in Sd2PinMap.h is 10. If you're using the SparkFun microSD shield with the SparkFun MP3 shield, the SD CS pin 
- is pin 9. 
- 
- Four pins are needed to control the VS1503:
- DREQ
- CS
- DCS
- Reset (optional but good to have access to)
- Plus the SPI bus
- 
- Only the SPI bus pins and another CS pin are needed to control the microSD card.
- 
- What surprised me is the fact that with a normal MP3 we can do other things for up to 100ms while the MP3 IC crunches
- through it's fairly large buffer of 2048 bytes. As long as you keep your sensor checks or serial reporting to under 
- 100ms and leave ~30ms to then replenish the MP3 buffer, you can do quite a lot while the MP3 is playing glitch free.
- 
+MPF
  */
 
 #include <SPI.h>
@@ -53,16 +9,33 @@
 #include <SdFat.h>
 #include <BioFeedBack.h>
 #include <math.h>
+#include <Bounce.h>
+#include <EEPROM.h>
+
+Bounce b_ch1       = Bounce( B_CH1      , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_cntr      = Bounce( B_CNTR     , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_thr       = Bounce( B_THR      , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_ch2       = Bounce( B_CH2      , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_audio     = Bounce( B_AUDIO    , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_disp      = Bounce( B_DISP     , BUTTON_DEBOUNCE_PERIOD ); 
+Bounce b_onoff_sns = Bounce( B_ONOFF_SNS, BUTTON_DEBOUNCE_PERIOD ); 
 
 PreOperatingSelfTest PreOperatingSelfTest;
 Sensor Sensor;
 DigitalPOT	DigitalPOT;
 DigitalPGA	DigitalPGA;
 HW_configuration	HW_configuration;
-
-//Create the variables to be used by SdFat Library
-//String readString;
 Mp3	Mp3;
+StoreStruct_t settings = {
+  // The default values
+  220, 1884,
+  'c',
+  10000,
+  {4.5, 5.5, 7, 8.5, 10, 12},
+  CONFIG_VERSION
+};
 
 //This is the name of the file on the microSD card you would like to play
 //Stick with normal 8.3 nomeclature. All lower-case works well.
@@ -70,8 +43,6 @@ Mp3	Mp3;
 //For example, the code is expecting to play 'track002.mp3', not track2.mp3.
 char trackName[] = "track001.mp3";
 int trackNumber = 1;
-
-String inBytestring; 
 
 ////MP3 Player Shield pin mapping. See the schematic
 //#define MP3_XCS 6 //Control Chip Select Pin (for accessing SPI Control/Status registers)
@@ -118,7 +89,15 @@ void setup() {
 //  digitalWriteFast(MP3_RESET, LOW); //Put VS1053 into hardware reset
 
 	Mp3.Initialize();
+	loadConfig();
+	
+//  for (int i = 0; i < 512; i++)
+//    EEPROM.write(i, i);	
+	
 }
+
+
+
 
 void loop(){
 
@@ -160,40 +139,98 @@ void loop(){
 //	}
 
   while(1) {
-		// Keyboard Test
-		if ( (digitalRead(B_CH1) == LOW) ||
-		(digitalReadFast(B_DISP) == LOW) ||
-		(digitalReadFast(B_DWN) == LOW) ||
-		(digitalReadFast(B_UP) == LOW) ||
-		(digitalReadFast(B_CH2) == LOW) ||
-		(digitalReadFast(B_AUDIO) == LOW) ||
-		(digitalReadFast(B_CNTR) == LOW) ||
-		(digitalReadFast(B_THR) == LOW) ||
-		(digitalReadFast(B_ONOFF_SNS) == LOW) )
-		{
-			digitalWriteFast(pwm_led_bar[0], LOW);
-		}
-		else {
-			digitalWriteFast(pwm_led_bar[0], HIGH);
-		}
-	
-		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
-			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
-				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
-			}
-			else {
-				digitalWriteFast(button_test_leds[thisPin+1], LOW);
-			}
-			if (digitalReadFast(B_ONOFF_SNS) == LOW)	{
-				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
-			}		
-			if (digitalReadFast(B_CNTR) == LOW)	{
+  	
+  	int i = settings.c - 'a';
+  	
+		if (b_cntr.update()) {
+			if (b_cntr.fallingEdge())	{
+				Serial.println("b_cntr pressed");
 				Serial.print("Battery Voltage = ");
 				Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
 				Serial.println(" volts");
-			}		
-		}
+				
+				settings.c = 'a';
+				saveConfig();
+				
+			}	
+		}	
+//		if (b_onoff_sns.update()) {
+//			if (b_onoff_sns.fallingEdge())	{
+//				Serial.println("b_onoff_sns pressed");
+//				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+//			}	
+//		}	
+		if (digitalReadFast(B_ONOFF_SNS) == LOW)	{
+			digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+		}		
+		if (b_ch1.update()) {
+			if (b_ch1.fallingEdge())	{
+				Serial.println("b_ch1 pressed");
+			}	
+		}	
+		if (b_dwn.update()) {
+			if (b_dwn.fallingEdge())	{
+				Serial.println("b_dwn pressed");
+			}	
+		}	
+		if (b_up.update()) {
+			if (b_up.fallingEdge())	{
+				Serial.println("b_up pressed");
+			}	
+		}	
+		if (b_thr.update()) {
+			if (b_thr.fallingEdge())	{
+				Serial.println("b_thr pressed");
+//				Serial.println("Printing EEPROM Contents:");
+//				for (uint8_t  thisbyte = 0; thisbyte < 20; thisbyte++)  {
+//				  Serial.print(thisbyte, DEC);
+//				  Serial.print("\t");
+//				  Serial.print(EEPROM.read(thisbyte), DEC);
+//				  Serial.println();				
+//				}
+			}	
+		}	
+		if (b_ch2.update()) {
+			if (b_ch2.fallingEdge())	{
+				Serial.println("b_ch2 pressed");
+			}	
+		}	
+		if (b_audio.update()) {
+			if (b_audio.fallingEdge())	{
+				Serial.println("b_audio pressed");
+			}	
+		}	
+		if (b_disp.update()) {
+			if (b_disp.fallingEdge())	{
+				Serial.println("b_disp pressed");
+			}	
+		}	
 
+//		// Keyboard Test
+//		if ( (digitalRead(B_CH1) == LOW) ||
+//		(digitalReadFast(B_DISP) == LOW) ||
+//		(digitalReadFast(B_DWN) == LOW) ||
+//		(digitalReadFast(B_UP) == LOW) ||
+//		(digitalReadFast(B_CH2) == LOW) ||
+//		(digitalReadFast(B_AUDIO) == LOW) ||
+//		(digitalReadFast(B_CNTR) == LOW) ||
+//		(digitalReadFast(B_THR) == LOW) ||
+//		(digitalReadFast(B_ONOFF_SNS) == LOW) )
+//		{
+//			digitalWriteFast(pwm_led_bar[0], LOW);
+//		}
+//		else {
+//			digitalWriteFast(pwm_led_bar[0], HIGH);
+//		}
+//	
+//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
+//			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
+//				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
+//			}
+//			else {
+//				digitalWriteFast(button_test_leds[thisPin+1], LOW);
+//			}
+//		}
 
 		// End Keyboard Test
 
@@ -207,3 +244,33 @@ void loop(){
 	}
 }
 
+void loadConfig() {
+  // To make sure there are settings, and they are YOURS!
+  // If nothing is found it will use the default settings.
+  if (//EEPROM.read(CONFIG_START + sizeof(settings) - 1) == settings.version_of_program[3] // this is '\0'
+      EEPROM.read(CONFIG_START + sizeof(settings) - 2) == settings.version_of_program[2] &&
+      EEPROM.read(CONFIG_START + sizeof(settings) - 3) == settings.version_of_program[1] &&
+      EEPROM.read(CONFIG_START + sizeof(settings) - 4) == settings.version_of_program[0])
+  { // reads settings from EEPROM
+  	Serial.println("EEPROM being loaded.");
+    for (unsigned int t=0; t<sizeof(settings); t++)
+      *((char*)&settings + t) = EEPROM.read(CONFIG_START + t);
+  } else {
+    // settings aren't valid! will overwrite with default settings
+    Serial.println("EEPROM being defaulted.");
+    saveConfig();
+  }
+}
+
+void saveConfig() {
+	Serial.println("EEPROM being saved.");
+  for (unsigned int t=0; t<sizeof(settings); t++)
+  { // writes to EEPROM
+    EEPROM.write(CONFIG_START + t, *((char*)&settings + t));
+    // and verifies the data
+    if (EEPROM.read(CONFIG_START + t) != *((char*)&settings + t))
+    {
+      // error writing to EEPROM
+    }
+  }
+}
