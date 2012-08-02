@@ -22,6 +22,14 @@ Sd2Card card;
 SdVolume volume;
 SdFile root;
 SdFile track;
+volatile StoreStruct_t EEPROM_configuration = {
+  // The default values
+  40, 40,
+  'c',
+  10000,
+  {4.5, 5.5, 7, 8.5, 10, 12},
+  CONFIG_VERSION
+};
 
 float fmap(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -340,6 +348,7 @@ void Mp3::Initialize() {
 
   //SetVolume(10, 10); //Set initial volume (20 = -10dB) LOUD
   SetVolume(40, 40); //Set initial volume (20 = -10dB) Manageable
+  SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r); //Set initial volume (20 = -10dB) Manageable
   //SetVolume(80, 80); //Set initial volume (20 = -10dB) More quiet
 
   //Let's check the status of the VS1053

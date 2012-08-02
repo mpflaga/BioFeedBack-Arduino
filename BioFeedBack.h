@@ -102,7 +102,7 @@
                            
 #define FADE_DELAY          10
 #define CYLON_DELAY         100
-#define POST_TIMER          200
+#define POST_TIMER          100
 
 const uint8_t pwm_led_bar[] = {
 4, 5, 2, 3, 6, 7, 8, 9, 10, 11, 12, 46, 45, 44 };
@@ -224,7 +224,7 @@ public:
 
 typedef struct {
   // The variables of your settings
-  int a, b;
+  uint8_t vol_l, vol_r;
   char c;
   long d;
   float e[6];
@@ -232,6 +232,8 @@ typedef struct {
   char version_of_program[4]; // it is the last variable of the 
 }
 StoreStruct_t;
+
+extern volatile StoreStruct_t EEPROM_configuration;
 
 void loadConfig();
 void saveConfig();
