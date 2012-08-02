@@ -101,7 +101,7 @@
 #define REGULATOR_VOLTAGE   3.33
                            
 #define FADE_DELAY          10
-#define CYLON_DELAY         100
+#define CYLON_DELAY         50
 #define POST_TIMER          100
 
 const uint8_t pwm_led_bar[] = {
@@ -207,6 +207,10 @@ public:
 #define SCI_AICTRL1 0x0D
 #define SCI_AICTRL2 0x0E
 #define SCI_AICTRL3 0x0F
+
+//VS10xx SCI_MODE bitmasks
+#define SM_RESET 0x04
+#define SM_CANCEL 0x08
 
 class Mp3
 {

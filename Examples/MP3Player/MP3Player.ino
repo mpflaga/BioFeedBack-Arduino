@@ -49,7 +49,10 @@ int trackNumber = 1;
 void setup() {
 	MCUSR = 0;
 	wdt_disable();
+	attachInterrupt(4, Interrupt4, FALLING); // #4 maps to pin PD2 INT1 via WInterrupts.c
+	attachInterrupt(5, Interrupt5, FALLING); // #5 maps to pin PD3 INT1 via WInterrupts.c
 	HW_configuration.BoardsPinMode();
+
 
 //#ifdef DEBUG
 //	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(25, 0, 100, 0, MCP4013_FULL_SCALE));
@@ -146,13 +149,22 @@ void loop(){
 		if (b_onoff_sns.update()) {
 			if (b_onoff_sns.fallingEdge())	{
 				Serial.println("b_onoff_sns pressed");
-				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
-				delay(1000);           // this prevents next WDTO from bouncing system before above line settles, in off
-				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
-				for(;;)
-				{
-				}
-				break;
+//				
+//				// prevent garbage and popping
+//			  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
+//				Mp3.SetVolume(0xFE, 0xFE);
+//				Mp3.WriteRegister(SCI_MODE, 0x48, SM_RESET);
+//				delay(250); // settle time may be needed.
+//			  digitalWriteFast(MP3_RESET, LOW);  //
+//				delay(250); // settle time may be needed.
+//				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+//
+//				delay(2000);           // this prevents next WDTO from bouncing system before above line settles, in off
+//				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
+//				for(;;)
+//				{
+//				}
+//				break;
 			}
 		}
 		if (b_ch1.update()) {
@@ -294,4 +306,39 @@ void saveConfig() {
       // error writing to EEPROM
     }
   }
+}
+
+void Interrupt4()
+{
+	Serial.println("Int4 WAS HIT");
+	delay(100);
+	if (digitalReadFast(B_ONOFF_SNS) == HIGH) {
+		return;
+	}
+	Serial.println("INT4/b_onoff_sns still pressed");
+	
+	// prevent garbage and popping
+  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
+	delay(250); // settle time may be needed.
+  digitalWriteFast(MP3_RESET, LOW);  //
+	delay(250); // settle time may be needed.
+	digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+
+	delay(2000);           // this prevents next WDTO from bouncing system before above line settles, in off
+	wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
+	for(;;)
+	{
+	}
+
+}
+
+void Interrupt5()
+{
+//	Serial.println("Int5 WAS HIT");
+	if (digitalReadFast(pwm_led_bar[5])) {
+		digitalWriteFast(pwm_led_bar[5], LOW);
+	}
+	else {
+		digitalWriteFast(pwm_led_bar[5], HIGH);
+	}	
 }
