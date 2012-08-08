@@ -58,19 +58,12 @@
 #define I2C_SDA             20      //PD1 input
 #define I2C_SCL             21      //PD0 input
                            
-#if defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
+//#if defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
 #define MP3_XCS             67      //PK5 Output, Active Low,  Control Chip Select Pin (for accessing SPI Control/Status registers)
 #define MP3_XDCS            68      //PK6 Output, Active Low,  Data Chip Select / BSYNC Pin
 #define MP3_DREQ            66      //PK4 Input , Active High, Data Request Pin: Player asks for more data
 #define MP3_RESET           65      //PK3 Output, Active Low,  Reset is active low
 #define SDCARD_CS           76      //PJ6 Output, Active Low
-#else                       
-#define MP3_XCS              6      //Control Chip Select Pin (for accessing SPI Control/Status registers)
-#define MP3_XDCS             7      //Data Chip Select / BSYNC Pin
-#define MP3_DREQ             2      //Data Request Pin: Player asks for more data
-#define MP3_RESET            8      //Reset is active low
-#define SDCARD_CS            9      //Output, Active Low
-#endif                      
                             
 #define AUDIO_AMP_SHTDWN    85 //PE2 Output, Active Low, Disables the Amp
                             
@@ -211,17 +204,6 @@ public:
 //VS10xx SCI_MODE bitmasks
 #define SM_RESET 0x04
 #define SM_CANCEL 0x08
-
-class Mp3
-{
-public:
-	void SetVolume(unsigned char, unsigned char);
-	unsigned int ReadRegister (unsigned char);
-	void WriteRegister(unsigned char, unsigned char, unsigned char);
-	void Initialize();
-	void Play(char*);
-}
-;
 
 #define CONFIG_START 32
 #define CONFIG_VERSION "ls1"

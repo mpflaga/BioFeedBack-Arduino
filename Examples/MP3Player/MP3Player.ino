@@ -7,11 +7,22 @@ MPF
 //Add the SdFat Libraries
 #include <digitalWriteFast.h>
 #include <SdFat.h>
+#include <SFEMP3Shield.h>
 #include <BioFeedBack.h>
 #include <math.h>
 #include <Bounce.h>
 #include <EEPROM.h>
 #include <avr/wdt.h>
+
+
+SFEMP3Shield MP3player;
+
+byte temp;
+byte result;
+
+char title[30];
+char artist[30];
+char album[30];
 
 Bounce b_ch1       = Bounce( B_CH1      , BUTTON_DEBOUNCE_PERIOD );
 Bounce b_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD );
@@ -28,29 +39,10 @@ Sensor Sensor;
 DigitalPOT	DigitalPOT;
 DigitalPGA	DigitalPGA;
 HW_configuration	HW_configuration;
-Mp3	Mp3;
-
-//This is the name of the file on the microSD card you would like to play
-//Stick with normal 8.3 nomeclature. All lower-case works well.
-//Note: you must name the tracks on the SD card with 001, 002, 003, etc.
-//For example, the code is expecting to play 'track002.mp3', not track2.mp3.
-char trackName[] = "track001.mp3";
-int trackNumber = 1;
-
-////MP3 Player Shield pin mapping. See the schematic
-//#define MP3_XCS 6 //Control Chip Select Pin (for accessing SPI Control/Status registers)
-//#define MP3_XDCS 7 //Data Chip Select / BSYNC Pin
-//#define MP3_DREQ 2 //Data Request Pin: Player asks for more data
-//#define MP3_RESET 8 //Reset is active low
-////Remember you have to edit the Sd2PinMap.h of the sdfatlib library to correct control the SD card.
-//#define SDCARD_CS   9      //PJ6 Output, Active Low,  Remember you have to edit the Sd2PinMap.h of the sdfatlib library to correct control the SD card.
-
 
 void setup() {
 	MCUSR = 0;
 	wdt_disable();
-	attachInterrupt(4, Interrupt4, FALLING); // #4 maps to pin PD2 INT1 via WInterrupts.c
-	attachInterrupt(5, Interrupt5, FALLING); // #5 maps to pin PD3 INT1 via WInterrupts.c
 	HW_configuration.BoardsPinMode();
 
 
@@ -76,67 +68,127 @@ void setup() {
 	Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
 	Serial.println(" volts");
 
-//  pinMode(MP3_DREQ, INPUT);
-//  pinMode(MP3_XCS, OUTPUT);
-//  pinMode(MP3_XDCS, OUTPUT);
-//  pinMode(MP3_RESET, OUTPUT);
-//
-//  digitalWriteFast(MP3_XCS, HIGH); //Deselect Control
-//  digitalWriteFast(MP3_XDCS, HIGH); //Deselect Data
-//  digitalWriteFast(MP3_RESET, LOW); //Put VS1053 into hardware reset
-
 	loadConfig();
-	Mp3.Initialize();
+	digitalWriteFast(AUDIO_AMP_SHTDWN, HIGH); //Enable Audio Output
 
-//  for (int i = 0; i < 512; i++)
-//    EEPROM.write(i, i);
-
+  //boot up the MP3 Player Shield
+  result = MP3player.begin();
+  //check result, see readme for error codes.
+  if(result != 0) {
+    Serial.print("Error code: ");
+    Serial.print(result);
+    Serial.println(" when trying to start MP3 player");
+    }
+  Serial.println("Playing First Track");
+	MP3player.playTrack(1);
+  Serial.println("Send a number 1-9 to play a track or s to stop playing");
+  Serial.print("MP3_DREQINT = ");
+  Serial.println(MP3_DREQINT, DEC);
+  
 }
-
-
-
 
 void loop(){
 
-	while (trackNumber <= 10) {
-	  //Let's play a track of a given number
-	  sprintf(trackName, "track%03d.mp3", trackNumber); //Splice the new file number into this file name
-	  Mp3.Play(trackName); //Go play trackXXX.mp3
+  if(Serial.available()){
+    temp = Serial.read();
+    
+    Serial.print("Received command: ");
+    Serial.write(temp);
+    Serial.println(" ");
+    
+    //if s, stop the current track
+    if (temp == 's') {
+      MP3player.stopTrack();
+    }
+      
+    else if (temp >= '1' && temp <= '9'){
+      //convert ascii numbers to real numbers
+      temp = temp - 48;
+      
+      //tell the MP3 Shield to play a track
+      result = MP3player.playTrack(temp);
+      
+      //check result, see readme for error codes.
+      if(result != 0) {
+        Serial.print("Error code: ");
+        Serial.print(result);
+        Serial.println(" when trying to play track");
+        }
+      
+      Serial.println("Playing:");
+      
+      //we can get track info by using the following functions and arguments
+      //the functions will extract the requested information, and put it in the array we pass in  
+      MP3player.trackTitle((char*)&title);
+      MP3player.trackArtist((char*)&artist);
+      MP3player.trackAlbum((char*)&album);
+      
+      //print out the arrays of track information
+      Serial.write((byte*)&title, 30);
+      Serial.println();
+      Serial.print("by:  ");
+      Serial.write((byte*)&artist, 30);
+      Serial.println();
+      Serial.print("Album:  ");
+      Serial.write((byte*)&album, 30);
+      Serial.println();
+      
+      }
+    
+    /* Alterativly, you could call a track by it's file name by using playMP3(filename); 
+       But you must stick to 8.1 filenames, only 8 characters long, and 3 for the extension */
+    
+    else if (temp == 'f') {
+      //create a string with the filename
+      char trackName[] = "Ding.mp3";
+      
+      //tell the MP3 Shield to play that file
+      result = MP3player.playMP3(trackName);
+      
+      //check result, see readme for error codes.
+      if(result != 0) {
+        Serial.print("Error code: ");
+        Serial.print(result);
+        Serial.println(" when trying to play track");
+        }
+      }
+      
+  }
+  
+//  delay(100);
+  
 
-	  //Once we are done playing or have exited the playback for some reason, decide what track to play next
-	  trackNumber++; //When we loop, advance to next track!
-	}
-  Serial.println("MP3 playing has ended, moving onto other stuff");
-  Serial.println("");
 
-  Serial.println("Moving on to Keyboard Test");
-	Serial.println("UART3 Loop Back Test");
-	Serial3.println("BlueTooth Test, Type anything.");
-	digitalWriteFast(BT_RST, LOW);   //Take Radio out of Reset
-	digitalWriteFast(BT_CTS, LOW);    //Enable Transmitter
 
-	delay(1000);
-//	Serial3.print("$$$");
-	Serial.print("BT_CD = ");
-	Serial.println(digitalReadFast(BT_CD));
-//	while (!digitalReadFast(BT_CD));
-//	Serial.println("BT Connect Detected.");
+
+//  Serial.println("Moving on to Keyboard Test");
+//	Serial.println("UART3 Loop Back Test");
+//	Serial3.println("BlueTooth Test, Type anything.");
+//	digitalWriteFast(BT_RST, LOW);   //Take Radio out of Reset
+//	digitalWriteFast(BT_CTS, LOW);    //Enable Transmitter
+//
+//	delay(1000);
+////	Serial3.print("$$$");
 //	Serial.print("BT_CD = ");
 //	Serial.println(digitalReadFast(BT_CD));
-
-//	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
-//		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
-//		Serial.println("Sensor Voltage = ");
-//		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
-//			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
-//			Serial.println(" volts");
-//			delay(100);
-//		}
-//		delay(2000);
-//	}
-
-  while(1) {
-
+////	while (!digitalReadFast(BT_CD));
+////	Serial.println("BT Connect Detected.");
+////	Serial.print("BT_CD = ");
+////	Serial.println(digitalReadFast(BT_CD));
+//
+////	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
+////		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
+////		Serial.println("Sensor Voltage = ");
+////		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
+////			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
+////			Serial.println(" volts");
+////			delay(100);
+////		}
+////		delay(2000);
+////	}
+//
+//  while(1) {
+//
 		if (b_cntr.update()) {
 			if (b_cntr.fallingEdge())	{
 				Serial.println("b_cntr pressed");
@@ -152,18 +204,15 @@ void loop(){
 //				
 //				// prevent garbage and popping
 //			  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
-//				Mp3.SetVolume(0xFE, 0xFE);
-//				Mp3.WriteRegister(SCI_MODE, 0x48, SM_RESET);
-//				delay(250); // settle time may be needed.
-//			  digitalWriteFast(MP3_RESET, LOW);  //
 //				delay(250); // settle time may be needed.
 //				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
 //
 //				delay(2000);           // this prevents next WDTO from bouncing system before above line settles, in off
-//				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
-//				for(;;)
-//				{
-//				}
+				Serial.println("Using the WatchDog to Soft Reset");
+				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
+				for(;;)
+				{
+				}
 //				break;
 			}
 		}
@@ -187,7 +236,7 @@ void loop(){
 				Serial.println("dB");
 #endif
 				saveConfig();
-				Mp3.Play("Ding.mp3"); //Go play trackXXX.mp3
+				MP3player.playMP3("Ding.mp3");
 			}
 		}
 		if (b_up.update()) {
@@ -205,7 +254,7 @@ void loop(){
 				Serial.println("dB");
 #endif
 				saveConfig();
-				Mp3.Play("Ding.mp3"); //Go play trackXXX.mp3
+				MP3player.playMP3("Ding.mp3");
 			}
 		}
 		if (b_thr.update()) {
@@ -226,8 +275,6 @@ void loop(){
 		if (b_disp.update()) {
 			if (b_disp.fallingEdge())	{
 				Serial.println("b_disp pressed");
-				trackNumber = 1;
-				break;
 			}
 		}
 
@@ -260,13 +307,12 @@ void loop(){
 		// End Keyboard Test
 
 //MPF STILL TRYING TO WORK OUT THE BT
-		while (Serial3.available()) {
-		  Serial.write((uint8_t ) Serial3.read());
-		}
-		while (Serial.available()) {
-		  Serial3.write((uint8_t ) Serial.read());
-		}
-	}
+//		while (Serial3.available()) {
+//		  Serial.write((uint8_t ) Serial3.read());
+//		}
+//		while (Serial.available()) {
+//		  Serial3.write((uint8_t ) Serial.read());
+//		}
 }
 
 void loadConfig() {
@@ -306,39 +352,4 @@ void saveConfig() {
       // error writing to EEPROM
     }
   }
-}
-
-void Interrupt4()
-{
-	Serial.println("Int4 WAS HIT");
-	delay(100);
-	if (digitalReadFast(B_ONOFF_SNS) == HIGH) {
-		return;
-	}
-	Serial.println("INT4/b_onoff_sns still pressed");
-	
-	// prevent garbage and popping
-  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
-	delay(250); // settle time may be needed.
-  digitalWriteFast(MP3_RESET, LOW);  //
-	delay(250); // settle time may be needed.
-	digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
-
-	delay(2000);           // this prevents next WDTO from bouncing system before above line settles, in off
-	wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
-	for(;;)
-	{
-	}
-
-}
-
-void Interrupt5()
-{
-//	Serial.println("Int5 WAS HIT");
-	if (digitalReadFast(pwm_led_bar[5])) {
-		digitalWriteFast(pwm_led_bar[5], LOW);
-	}
-	else {
-		digitalWriteFast(pwm_led_bar[5], HIGH);
-	}	
 }
