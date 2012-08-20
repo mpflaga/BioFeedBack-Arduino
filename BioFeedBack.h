@@ -75,7 +75,11 @@
 #define BT_CTS              27      //PA5 Output, Active Low,  Enable Device Transmission, Not Sure - MPF
 #define BT_RTS              26      //PA4 Input , Active Low,  Requesting Data, Not Sure - MPF
 #define BT_RST              23      //PA1 Output, Active Low,  Resets BlueTooth Transciever
+#define BT_Enabled        HIGH      // value of BT_RST
+#define BT_Disabled        LOW
 #define BT_CD               72      //PJ2 Input, 
+
+
                             
 #define TMPOFFSET_CS        71      //PH7 Output, Active Low,  Enables MOSI of Offset DAC of Tempurature
 #define GSROFFSET_CS        53      //PB0 Output, Active Low,  Enables MOSI of Offset DAC of GSR

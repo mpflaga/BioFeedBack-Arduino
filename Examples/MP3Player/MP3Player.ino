@@ -7,8 +7,8 @@ MPF
 //Add the SdFat Libraries
 #include <digitalWriteFast.h>
 #include <SdFat.h>
-#include <SFEMP3Shield.h>
 #include <BioFeedBack.h>
+#include <SFEMP3Shield.h>
 #include <math.h>
 #include <Bounce.h>
 #include <EEPROM.h>
@@ -140,7 +140,7 @@ void loop(){
     
     else if (temp == 'f') {
       //create a string with the filename
-      char trackName[] = "Ding.mp3";
+      char trackName[] = "carly0.mid";
       
       //tell the MP3 Shield to play that file
       result = MP3player.playMP3(trackName);
@@ -164,8 +164,8 @@ void loop(){
 //  Serial.println("Moving on to Keyboard Test");
 //	Serial.println("UART3 Loop Back Test");
 //	Serial3.println("BlueTooth Test, Type anything.");
-//	digitalWriteFast(BT_RST, LOW);   //Take Radio out of Reset
-//	digitalWriteFast(BT_CTS, LOW);    //Enable Transmitter
+//	digitalWriteFast(BT_RST, BT_Enabled);   //Take Radio out of Reset
+//	digitalWriteFast(BT_CTS, BT_Enabled);    //Enable Transmitter
 //
 //	delay(1000);
 ////	Serial3.print("$$$");
@@ -203,11 +203,11 @@ void loop(){
 				Serial.println("b_onoff_sns pressed");
 //				
 //				// prevent garbage and popping
-//			  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
+			  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
 //				delay(250); // settle time may be needed.
-//				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
 //
-//				delay(2000);           // this prevents next WDTO from bouncing system before above line settles, in off
+				delay(1000);           // this prevents next WDTO from bouncing system before above line settles, in off
 				Serial.println("Using the WatchDog to Soft Reset");
 				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
 				for(;;)
@@ -236,7 +236,9 @@ void loop(){
 				Serial.println("dB");
 #endif
 				saveConfig();
+				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
 				MP3player.playMP3("Ding.mp3");
+				b_dwn.rebounce(250);
 			}
 		}
 		if (b_up.update()) {
@@ -254,8 +256,10 @@ void loop(){
 				Serial.println("dB");
 #endif
 				saveConfig();
+				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
 				MP3player.playMP3("Ding.mp3");
 			}
+			b_up.rebounce(250);
 		}
 		if (b_thr.update()) {
 			if (b_thr.fallingEdge())	{

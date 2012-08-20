@@ -248,8 +248,8 @@ void HW_configuration::BoardsPinMode () {
 //  digitalWriteFast(BT_RX, HIGH);
   digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Initially Disable(HIGH) Audio Output
 //  digitalWriteFast(BT_CTS, HIGH);   //Initially Disable(HIGH) Radio Transmission
-  digitalWriteFast(BT_CTS, LOW);   //Leave Enabled, as to span resets for Debug.
-  digitalWriteFast(BT_RST, LOW);   //Initially Hold Radio in Reset
+  digitalWriteFast(BT_CTS, BT_Disabled);   //Leave Enabled, as to span resets for Debug.
+  digitalWriteFast(BT_RST, BT_Disabled);   //Initially Hold Radio in Reset
   digitalWriteFast(TMPOFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(GSROFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
