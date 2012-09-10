@@ -228,7 +228,7 @@ void loop(){
 #endif
 				saveConfig();
 				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("Ding.mp3");
+				MP3player.playMP3("/vs1053/sounds/ding.mp3");
 				b_dwn.rebounce(250);
 			}
 		}
@@ -248,7 +248,7 @@ void loop(){
 #endif
 				saveConfig();
 				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("Ding.mp3");
+				MP3player.playMP3("/vs1053/sounds/ding.mp3");
 			}
 			b_up.rebounce(250);
 		}
