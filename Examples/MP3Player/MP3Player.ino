@@ -79,6 +79,9 @@ void setup() {
     Serial.print(result);
     Serial.println(" when trying to start MP3 player");
     }
+  MP3player.ADMixerLoad(STEREO);
+  MP3player.ADMixerVol(-3);
+
   Serial.println("Playing First Track");
 	MP3player.playTrack(1);
   Serial.println("Send a number 1-9 to play a track or s to stop playing");
