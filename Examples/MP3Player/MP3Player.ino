@@ -12,8 +12,6 @@ MPF
 #include <math.h>
 #include <Bounce.h>
 #include <EEPROM.h>
-#include <avr/wdt.h>
-
 
 SFEMP3Shield MP3player;
 
@@ -42,7 +40,6 @@ HW_configuration	HW_configuration;
 
 void setup() {
 	MCUSR = 0;
-	wdt_disable();
 	HW_configuration.BoardsPinMode();
 
 
@@ -198,25 +195,16 @@ void loop(){
 				Serial.print("Battery Voltage = ");
 				Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
 				Serial.println(" volts");
-				saveConfig();
+//				saveConfig();
+				if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
+				  HW_configuration.Reset();
+				}
 			}
 		}
 		if (b_onoff_sns.update()) {
 			if (b_onoff_sns.fallingEdge())	{
 				Serial.println("b_onoff_sns pressed");
-//				
-//				// prevent garbage and popping
-			  digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
-//				delay(250); // settle time may be needed.
-				digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
-//
-				delay(1000);           // this prevents next WDTO from bouncing system before above line settles, in off
-				Serial.println("Using the WatchDog to Soft Reset");
-				wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
-				for(;;)
-				{
-				}
-//				break;
+			  HW_configuration.Reset();
 			}
 		}
 		if (b_ch1.update()) {
@@ -267,6 +255,7 @@ void loop(){
 		if (b_thr.update()) {
 			if (b_thr.fallingEdge())	{
 				Serial.println("b_thr pressed");
+				MP3player.playMP3("/vs1053/sounds/womb.mp3");
 			}
 		}
 		if (b_ch2.update()) {

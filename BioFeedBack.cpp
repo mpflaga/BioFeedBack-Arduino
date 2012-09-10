@@ -210,6 +210,8 @@ void PreOperatingSelfTest::post () {
 //} // PreOperatingSelfTest()
 
 void HW_configuration::BoardsPinMode () {
+	wdt_disable();
+
 	pinMode(LD_DIAG, OUTPUT);
 	pinMode(PS_MODE, INPUT);      //Pin #55(PC2) PS_MODE
 	pinMode(P_ONOFF_CTRL, OUTPUT);     //Pin #54(PC1) P_ONOFF_CTRL
@@ -280,6 +282,17 @@ void HW_configuration::BoardsPinMode () {
 	}
 }
 
+void HW_configuration::Reset () {
+	digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Turn Off Audio AMP to prevent POP
+	digitalWriteFast(P_ONOFF_CTRL, LOW); // turn off
+	delay(1000);           // this prevents next WDTO from bouncing system before above line settles, in off
+	Serial.println("Using the WatchDog to Soft Reset");
+	wdt_enable(WDTO_15MS); // provides a Soft Reset when connected to FDTI Port, that provides power
+	for(;;)
+	{
+	}
+}	
+	
 Bounce mp3_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD ); 
 Bounce mp3_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD ); 
 

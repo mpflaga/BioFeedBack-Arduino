@@ -13,6 +13,7 @@
 #define BioFeedBack_h
 #include "Arduino.h"
 #include <inttypes.h>
+#include <avr/wdt.h>
 
 #define TRUE  0
 #define FALSE  1
@@ -133,6 +134,7 @@ class HW_configuration
 {
 public:
 	void BoardsPinMode();
+	void Reset();
 }
 ;
 
