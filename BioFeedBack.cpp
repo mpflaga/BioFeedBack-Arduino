@@ -25,9 +25,6 @@ SdFile track;
 volatile StoreStruct_t EEPROM_configuration = {
   // The default values
   40, 40,
-  'c',
-  10000,
-  {4.5, 5.5, 7, 8.5, 10, 12},
   CONFIG_VERSION
 };
 
@@ -250,8 +247,8 @@ void HW_configuration::BoardsPinMode () {
 //  digitalWriteFast(BT_RX, HIGH);
   digitalWriteFast(AUDIO_AMP_SHTDWN, LOW); //Initially Disable(HIGH) Audio Output
 //  digitalWriteFast(BT_CTS, HIGH);   //Initially Disable(HIGH) Radio Transmission
-  digitalWriteFast(BT_CTS, BT_Disabled);   //Leave Enabled, as to span resets for Debug.
-  digitalWriteFast(BT_RST, BT_Disabled);   //Initially Hold Radio in Reset
+  digitalWriteFast(BT_CTS, BT_CTS_Disabled);   //Leave Enabled, as to span resets for Debug.
+  digitalWriteFast(BT_RST, BT_RST_Disabled);   //Initially Hold Radio in Reset
   digitalWriteFast(TMPOFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(GSROFFSET_CS, HIGH); //Initially Deselect DAC
   digitalWriteFast(TMPPGA_CS, HIGH);   //Initially Deselect PGA
@@ -293,6 +290,5 @@ void HW_configuration::Reset () {
 	}
 }	
 	
-Bounce mp3_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD ); 
-Bounce mp3_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD ); 
-
+//Bounce mp3_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD ); 
+//Bounce mp3_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD ); 

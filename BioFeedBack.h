@@ -14,11 +14,12 @@
 #include "Arduino.h"
 #include <inttypes.h>
 #include <avr/wdt.h>
+#include <rn42.h>
 
 #define TRUE  0
 #define FALSE  1
 
-#define DEBUG
+//#define DEBUG
 
 // Power Control output Pins
 #define PS_MODE             35  /* Drive Power Save Mode on TPS61200 */
@@ -76,8 +77,10 @@
 #define BT_CTS              27      //PA5 Output, Active Low,  Enable Device Transmission, Not Sure - MPF
 #define BT_RTS              26      //PA4 Input , Active Low,  Requesting Data, Not Sure - MPF
 #define BT_RST              23      //PA1 Output, Active Low,  Resets BlueTooth Transciever
-#define BT_Enabled        HIGH      // value of BT_RST
-#define BT_Disabled        LOW
+#define BT_RST_Enabled    HIGH      // value of BT_RST
+#define BT_RST_Disabled    LOW
+#define BT_CTS_Enabled     LOW      // value of BT_CTS
+#define BT_CTS_Disabled   HIGH
 #define BT_CD               72      //PJ2 Input, 
 
 
@@ -217,10 +220,6 @@ public:
 typedef struct {
   // The variables of your settings
   uint8_t vol_l, vol_r;
-  char c;
-  long d;
-  float e[6];
-  // This is for mere detection if they are your settings
   char version_of_program[4]; // it is the last variable of the 
 }
 StoreStruct_t;
@@ -229,5 +228,6 @@ extern volatile StoreStruct_t EEPROM_configuration;
 
 void loadConfig();
 void saveConfig();
+void keypad();
 
 #endif  // End BioFeedBack_h

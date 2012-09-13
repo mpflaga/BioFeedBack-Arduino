@@ -12,8 +12,10 @@ MPF
 #include <math.h>
 #include <Bounce.h>
 #include <EEPROM.h>
+#include <rn42.h>
 
 SFEMP3Shield MP3player;
+RN42 Bluetooth;
 
 byte temp;
 byte result;
@@ -21,16 +23,6 @@ byte result;
 char title[30];
 char artist[30];
 char album[30];
-
-Bounce b_ch1       = Bounce( B_CH1      , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_cntr      = Bounce( B_CNTR     , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_thr       = Bounce( B_THR      , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_ch2       = Bounce( B_CH2      , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_audio     = Bounce( B_AUDIO    , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_disp      = Bounce( B_DISP     , BUTTON_DEBOUNCE_PERIOD );
-Bounce b_onoff_sns = Bounce( B_ONOFF_SNS, BUTTON_DEBOUNCE_PERIOD );
 
 PreOperatingSelfTest PreOperatingSelfTest;
 Sensor Sensor;
@@ -55,8 +47,8 @@ void setup() {
 	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 	DigitalPOT.SetDigitalPOT(GSROFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 
-  Serial.begin(115200); //Use serial for debugging
-  Serial3.begin(115200); //Use serial for debugging
+  Serial.begin(57600); //Use serial for debugging
+  Serial3.begin(57600); //Use serial for debugging
 
 	PreOperatingSelfTest.post();
 
@@ -76,21 +68,33 @@ void setup() {
     Serial.print(result);
     Serial.println(" when trying to start MP3 player");
     }
-  MP3player.ADMixerLoad(STEREO);
-  MP3player.ADMixerVol(-3);
+  if (MP3player.ADMixerLoad(STEREO) == 0) MP3player.ADMixerVol(-3);
 
   Serial.println("Playing First Track");
 	MP3player.playTrack(1);
   Serial.println("Send a number 1-9 to play a track or s to stop playing");
   Serial.print("MP3_DREQINT = ");
   Serial.println(MP3_DREQINT, DEC);
-  
+
+	Bluetooth.begin();
+	Serial.println("BlueTooth Test, Type anything.");
 }
 
 void loop(){
 
+//MPF STILL TRYING TO WORK OUT THE BT
+	while (Serial3.available()) {
+		Serial.write((uint8_t ) Serial3.read());
+	}
+
+//	while (Serial.available()) {
+//		Serial3.write((uint8_t ) Serial.read());
+//	}
+//	return;
+
   if(Serial.available()){
     temp = Serial.read();
+		Serial3.write(temp);
     
     Serial.print("Received command: ");
     Serial.write(temp);
@@ -161,11 +165,6 @@ void loop(){
 
 
 
-//  Serial.println("Moving on to Keyboard Test");
-//	Serial.println("UART3 Loop Back Test");
-//	Serial3.println("BlueTooth Test, Type anything.");
-//	digitalWriteFast(BT_RST, BT_Enabled);   //Take Radio out of Reset
-//	digitalWriteFast(BT_CTS, BT_Enabled);    //Enable Transmitter
 //
 //	delay(1000);
 ////	Serial3.print("$$$");
@@ -189,126 +188,8 @@ void loop(){
 //
 //  while(1) {
 //
-		if (b_cntr.update()) {
-			if (b_cntr.fallingEdge())	{
-				Serial.println("b_cntr pressed");
-				Serial.print("Battery Voltage = ");
-				Serial.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-				Serial.println(" volts");
-//				saveConfig();
-				if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
-				  HW_configuration.Reset();
-				}
-			}
-		}
-		if (b_onoff_sns.update()) {
-			if (b_onoff_sns.fallingEdge())	{
-				Serial.println("b_onoff_sns pressed");
-			  HW_configuration.Reset();
-			}
-		}
-		if (b_ch1.update()) {
-			if (b_ch1.fallingEdge())	{
-				Serial.println("b_ch1 pressed");
-			}
-		}
-		if (b_dwn.update()) {
-			if (b_dwn.fallingEdge())	{
-				Serial.println("b_dwn pressed");
-				EEPROM_configuration.vol_l--;
-				if (EEPROM_configuration.vol_l <= 1) EEPROM_configuration.vol_l = 1;
-				EEPROM_configuration.vol_r--;
-				if (EEPROM_configuration.vol_r <= 1) EEPROM_configuration.vol_r = 1;
-#ifdef DEBUG
-				Serial.print("Volume decreamented to -");
-				Serial.print((float) EEPROM_configuration.vol_l/2, 1);
-				Serial.print("/ -");
-				Serial.print((float) EEPROM_configuration.vol_r/2, 1);
-				Serial.println("dB");
-#endif
-				saveConfig();
-				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("/vs1053/sounds/ding.mp3");
-				b_dwn.rebounce(250);
-			}
-		}
-		if (b_up.update()) {
-			if (b_up.fallingEdge())	{
-				Serial.println("b_up pressed");
-				EEPROM_configuration.vol_l++;
-				if (EEPROM_configuration.vol_l >= 254) EEPROM_configuration.vol_l = 254;
-				EEPROM_configuration.vol_r++;
-				if (EEPROM_configuration.vol_r >= 254) EEPROM_configuration.vol_r = 254;
-#ifdef DEBUG
-				Serial.print("Volume increamented to -");
-				Serial.print((float) EEPROM_configuration.vol_l/2, 1);
-				Serial.print("/ -");
-				Serial.print((float) EEPROM_configuration.vol_r/2, 1);
-				Serial.println("dB");
-#endif
-				saveConfig();
-				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("/vs1053/sounds/ding.mp3");
-			}
-			b_up.rebounce(250);
-		}
-		if (b_thr.update()) {
-			if (b_thr.fallingEdge())	{
-				Serial.println("b_thr pressed");
-				MP3player.playMP3("/vs1053/sounds/womb.mp3");
-			}
-		}
-		if (b_ch2.update()) {
-			if (b_ch2.fallingEdge())	{
-				Serial.println("b_ch2 pressed");
-			}
-		}
-		if (b_audio.update()) {
-			if (b_audio.fallingEdge())	{
-				Serial.println("b_audio pressed");
-			}
-		}
-		if (b_disp.update()) {
-			if (b_disp.fallingEdge())	{
-				Serial.println("b_disp pressed");
-			}
-		}
 
-//		// Keyboard Test
-//		if ( (digitalRead(B_CH1) == LOW) ||
-//		(digitalReadFast(B_DISP) == LOW) ||
-//		(digitalReadFast(B_DWN) == LOW) ||
-//		(digitalReadFast(B_UP) == LOW) ||
-//		(digitalReadFast(B_CH2) == LOW) ||
-//		(digitalReadFast(B_AUDIO) == LOW) ||
-//		(digitalReadFast(B_CNTR) == LOW) ||
-//		(digitalReadFast(B_THR) == LOW) ||
-//		(digitalReadFast(B_ONOFF_SNS) == LOW) )
-//		{
-//			digitalWriteFast(pwm_led_bar[0], LOW);
-//		}
-//		else {
-//			digitalWriteFast(pwm_led_bar[0], HIGH);
-//		}
-//
-//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
-//			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
-//				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
-//			}
-//			else {
-//				digitalWriteFast(button_test_leds[thisPin+1], LOW);
-//			}
-//		}
-
-		// End Keyboard Test
-
-//MPF STILL TRYING TO WORK OUT THE BT
-//		while (Serial3.available()) {
-//		  Serial.write((uint8_t ) Serial3.read());
-//		}
-//		while (Serial.available()) {
-//		  Serial3.write((uint8_t ) Serial.read());
-//		}
+	keypad();
 }
 
 void loadConfig() {
@@ -348,4 +229,127 @@ void saveConfig() {
       // error writing to EEPROM
     }
   }
+}
+
+Bounce b_ch1       = Bounce( B_CH1      , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_dwn       = Bounce( B_DWN      , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_up        = Bounce( B_UP       , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_cntr      = Bounce( B_CNTR     , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_thr       = Bounce( B_THR      , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_ch2       = Bounce( B_CH2      , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_audio     = Bounce( B_AUDIO    , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_disp      = Bounce( B_DISP     , BUTTON_DEBOUNCE_PERIOD );
+Bounce b_onoff_sns = Bounce( B_ONOFF_SNS, BUTTON_DEBOUNCE_PERIOD );
+
+void keypad() {
+		if (b_cntr.update()) {
+			if (b_cntr.fallingEdge())	{
+				Serial3.println("b_cntr pressed");
+				Serial3.print("Battery Voltage = ");
+				Serial3.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+				Serial3.println(" volts");
+//				saveConfig();
+				if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
+				  HW_configuration.Reset();
+				}
+			}
+		}
+		if (b_onoff_sns.update()) {
+			if (b_onoff_sns.fallingEdge())	{
+				Serial3.println("b_onoff_sns pressed");
+			  HW_configuration.Reset();
+			}
+		}
+		if (b_ch1.update()) {
+			if (b_ch1.fallingEdge())	{
+				Serial3.println("b_ch1 pressed");
+			}
+		}
+		if (b_dwn.update()) {
+			if (b_dwn.fallingEdge())	{
+				Serial3.println("b_dwn pressed");
+				EEPROM_configuration.vol_l--;
+				if (EEPROM_configuration.vol_l <= 1) EEPROM_configuration.vol_l = 1;
+				EEPROM_configuration.vol_r--;
+				if (EEPROM_configuration.vol_r <= 1) EEPROM_configuration.vol_r = 1;
+#ifdef DEBUG
+				Serial3.print("Volume decreamented to -");
+				Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
+				Serial3.print("/ -");
+				Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
+				Serial3.println("dB");
+#endif
+				saveConfig();
+				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+				MP3player.playMP3("/vs1053/sounds/ding.mp3");
+				b_dwn.rebounce(250);
+			}
+		}
+		if (b_up.update()) {
+			if (b_up.fallingEdge())	{
+				Serial3.println("b_up pressed");
+				EEPROM_configuration.vol_l++;
+				if (EEPROM_configuration.vol_l >= 254) EEPROM_configuration.vol_l = 254;
+				EEPROM_configuration.vol_r++;
+				if (EEPROM_configuration.vol_r >= 254) EEPROM_configuration.vol_r = 254;
+#ifdef DEBUG
+				Serial3.print("Volume increamented to -");
+				Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
+				Serial3.print("/ -");
+				Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
+				Serial3.println("dB");
+#endif
+				saveConfig();
+				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+				MP3player.playMP3("/vs1053/sounds/ding.mp3");
+			}
+			b_up.rebounce(250);
+		}
+		if (b_thr.update()) {
+			if (b_thr.fallingEdge())	{
+				Serial3.println("b_thr pressed");
+				MP3player.playMP3("/vs1053/sounds/womb.mp3");
+			}
+		}
+		if (b_ch2.update()) {
+			if (b_ch2.fallingEdge())	{
+				Serial3.println("b_ch2 pressed");
+			}
+		}
+		if (b_audio.update()) {
+			if (b_audio.fallingEdge())	{
+				Serial3.println("b_audio pressed");
+			}
+		}
+		if (b_disp.update()) {
+			if (b_disp.fallingEdge())	{
+				Serial3.println("b_disp pressed");
+			}
+		}
+
+//		// Keyboard Test
+//		if ( (digitalRead(B_CH1) == LOW) ||
+//		(digitalReadFast(B_DISP) == LOW) ||
+//		(digitalReadFast(B_DWN) == LOW) ||
+//		(digitalReadFast(B_UP) == LOW) ||
+//		(digitalReadFast(B_CH2) == LOW) ||
+//		(digitalReadFast(B_AUDIO) == LOW) ||
+//		(digitalReadFast(B_CNTR) == LOW) ||
+//		(digitalReadFast(B_THR) == LOW) ||
+//		(digitalReadFast(B_ONOFF_SNS) == LOW) )
+//		{
+//			digitalWriteFast(pwm_led_bar[0], LOW);
+//		}
+//		else {
+//			digitalWriteFast(pwm_led_bar[0], HIGH);
+//		}
+//
+//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
+//			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
+//				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
+//			}
+//			else {
+//				digitalWriteFast(button_test_leds[thisPin+1], LOW);
+//			}
+//		}
 }
