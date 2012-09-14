@@ -10,18 +10,17 @@
 */
 
 #include <BioFeedBack.h>
-#define DEFAULT_FLUSH_TIMEOUT 500 // ms
 
 void RN42::begin() {
 	digitalWrite(BT_RST, BT_RST_Enabled);   //Take Radio out of Reset
 	digitalWrite(BT_CTS, BT_CTS_Enabled);   //Enable Transmitter
 	
-	delay(1000); // need to wait for the radio to stablize.
+	delay(750); // need to wait for the radio to stablize.
 
 	Serial.print("$$$ = ");
 	Serial.print (command("$$$", '\n', DEFAULT_FLUSH_TIMEOUT));
 	Serial.println();
-	delay(1000); // delay as it avoids problems, with flush.
+	delay(100); // delay as it avoids problems, with flush.
 	
 	read_version = command("v\n", '\n', DEFAULT_FLUSH_TIMEOUT);
 	read_serial = command("GB\n", '\n', DEFAULT_FLUSH_TIMEOUT);

@@ -9,26 +9,22 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef rn42_h
-#define rn42_h
+#ifndef GraphPatterns_h
+#define GraphPatterns_h
 
-#define DEFAULT_FLUSH_TIMEOUT 50 // ms
+#define full_scale 1
+#define half_scale 2
 
-class RN42
+class GraphPatterns
 {
 public:
-	void begin();
-	void end();
-	void TxOn();
-	void TxOff();
-	
-private:
-	String command (String, char, long);
-	void flush(long);
-	String read_version;
-	String read_serial;
-	String read_connection;
-//	String get_parameter;
+	void Fill_from_Fill_from_Left(int8_t, int8_t);
+	void Fill_from_Fill_from_Right(int8_t, int8_t);
+	void Fill_from_CenterOut(int8_t, int8_t);
+	void spot_from_left(int8_t, int8_t, int8_t);
+	void all_on();
+	void all_clear();
+	void CylonEye(uint16_t, uint8_t);
 };
 
-#endif  // End rn42_h
+#endif  // End GraphPatterns_h

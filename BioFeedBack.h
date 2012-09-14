@@ -15,11 +15,12 @@
 #include <inttypes.h>
 #include <avr/wdt.h>
 #include <rn42.h>
+#include <GraphPatterns.h>
 
 #define TRUE  0
 #define FALSE  1
 
-//#define DEBUG
+#define DEBUG
 
 // Power Control output Pins
 #define PS_MODE             35  /* Drive Power Save Mode on TPS61200 */
@@ -96,13 +97,17 @@
                             
 #define UP                  HIGH
 #define DOWN                LOW
+
+#define	LED_ON							LOW
+#define	LED_OFF							HIGH
+
 #define MCP4013_FULL_SCALE  64
 
 #define BATTERY_CALIBRATION 525
 #define REGULATOR_VOLTAGE   3.33
                            
 #define FADE_DELAY          10
-#define CYLON_DELAY         50
+#define CYLON_DELAY         5
 #define POST_TIMER          100
 
 const uint8_t pwm_led_bar[] = {
@@ -138,8 +143,7 @@ class HW_configuration
 public:
 	void BoardsPinMode();
 	void Reset();
-}
-;
+};
 
 
 class Sensor
@@ -147,8 +151,7 @@ class Sensor
 public:
 	float GetBatteryVoltage(uint8_t);
 	float GetTMPVoltage(uint8_t);
-}
-;
+};
 
 class PreOperatingSelfTest
 {
@@ -156,12 +159,11 @@ public:
 	void post();
 private:
 	void PulseLedBar();
-	void CylonEye();
+	void Cylon(uint16_t, uint8_t);
 	void FadeLedBar();
 	void BlinkAllButtonLeds();
 	void BlinkEachButtonLeds();
-}
-;
+};
 
 class DigitalPOT
 {
@@ -169,8 +171,7 @@ public:
 	void SetDigitalPOT(uint8_t, int8_t);
 private:
 	void PulseDigitalPOT(uint8_t, int8_t);
-} 
-;
+};
 
 #define Gain_of_01 B00000000
 #define Gain_of_02 B00000001
@@ -189,8 +190,7 @@ class DigitalPGA
 {
 public:
 	void WriteRegister(uint8_t, int8_t);
-} 
-;
+};
 
 //VS10xx SCI Registers
 #define SCI_MODE 0x00

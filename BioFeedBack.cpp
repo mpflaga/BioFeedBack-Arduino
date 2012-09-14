@@ -17,11 +17,10 @@
 #include <SdFat.h>
 #include <SdFatUtil.h> 
 #include <Bounce.h>
+#include <GraphPatterns.h>
 
-Sd2Card card;
-SdVolume volume;
-SdFile root;
-SdFile track;
+//GraphPatterns	BarGraph;
+
 volatile StoreStruct_t EEPROM_configuration = {
   // The default values
   40, 40,
@@ -84,29 +83,32 @@ void DigitalPGA::WriteRegister(uint8_t chipSelectPin, int8_t Gain) {
 void PreOperatingSelfTest::BlinkEachButtonLeds() {
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++) {
 		// turn the pin on:
-		digitalWrite(button_leds[thisPin], LOW);
+		digitalWrite(button_leds[thisPin], LED_ON);
 		delay(POST_TIMER);
 		// turn the pin off:
-		digitalWrite(button_leds[thisPin], HIGH);
+		digitalWrite(button_leds[thisPin], LED_OFF);
 	}
 	// loop from the highest pin to the lowest:
 	for (int8_t  thisPin = button_leds_count - 1; thisPin >= 0; thisPin--) {
 		// turn the pin on:
-		digitalWrite(button_leds[thisPin], LOW);
+		digitalWrite(button_leds[thisPin], LED_ON);
 		delay(POST_TIMER);
 		// turn the pin off:
-		digitalWrite(button_leds[thisPin], HIGH);
+		digitalWrite(button_leds[thisPin], LED_OFF);
 	}
 }
 
-void PreOperatingSelfTest::CylonEye() {
-	// loop from the lowest pin to the highest:
-	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++) {
-		// turn the pin on:
-		digitalWrite(pwm_led_bar[thisPin], LOW);
-		delay(CYLON_DELAY);
-		// turn the pin off:
-		digitalWrite(pwm_led_bar[thisPin], HIGH);
+void PreOperatingSelfTest::Cylon(uint16_t cylon_delay, uint8_t repetitions) {
+	GraphPatterns	BarGraph;
+	for (uint8_t  cycles = 0; ((cycles < repetitions) || (repetitions == 0)); cycles++) {
+		for (uint8_t  cycles = 1; cycles <= 100; cycles++) {
+			BarGraph.spot_from_left(cycles, 0, 1);
+			delay(cylon_delay);
+		}
+		for (uint8_t  cycles = 100; cycles >= 1; cycles--) {
+			BarGraph.spot_from_left(cycles, 0, 1);
+			delay(cylon_delay);
+		}
 	}
 }
 
@@ -134,22 +136,19 @@ void PreOperatingSelfTest::FadeLedBar() {
 void PreOperatingSelfTest::BlinkAllButtonLeds() {
 	// BLINK all Button LED's at once, twice
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
-		digitalWrite(button_leds[thisPin], LOW);
+		digitalWrite(button_leds[thisPin], LED_ON);
 	}
 	delay(POST_TIMER);
 	for (uint8_t  thisPin = 0; thisPin < button_leds_count; thisPin++)  {
-		digitalWrite(button_leds[thisPin], HIGH);
+		digitalWrite(button_leds[thisPin], LED_OFF);
 	}
 }
 
 void PreOperatingSelfTest::PulseLedBar () {
-	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
-		digitalWrite(pwm_led_bar[thisPin], LOW);
-	}
+	GraphPatterns	BarGraph;
+	BarGraph.all_on();
 	delay(POST_TIMER);
-	for (uint8_t  thisPin = 0; thisPin < pwm_led_bar_count; thisPin++)  {
-		digitalWrite(pwm_led_bar[thisPin], HIGH);
-	}
+	BarGraph.all_clear();
 }
 
 void PreOperatingSelfTest::post () {
@@ -158,7 +157,7 @@ void PreOperatingSelfTest::post () {
 	PulseLedBar();
 	delay(POST_TIMER);
 	PulseLedBar();
-	CylonEye();
+	Cylon(CYLON_DELAY, 1);
 #endif
 
 	FadeLedBar();
@@ -174,37 +173,7 @@ void PreOperatingSelfTest::post () {
 	BlinkEachButtonLeds();
 #endif
 
-} //	PreOperatingSelfTest();
-
-
-//void PreOperatingSelfTest() {
-//
-//#ifdef DEBUG
-//	irsend.PulseLedBar();
-//	delay(POST_TIMER);
-//	irsend.PulseLedBar();
-//	CylonEye();
-//#endif
-//
-//	FadeLedBar();
-//
-//#ifdef DEBUG
-//	BlinkAllButtonLeds();
-//	delay(POST_TIMER);
-//#endif
-//
-//	BlinkAllButtonLeds();
-//
-//#ifdef DEBUG
-//	BlinkEachButtonLeds();
-//#endif
-//
-//	// Report Battery Voltage
-//	Serial.print("Battery Voltage = ");
-//	Serial.print(GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-//	Serial.println(" volts");
-//
-//} // PreOperatingSelfTest()
+} // PreOperatingSelfTest();
 
 void HW_configuration::BoardsPinMode () {
 	wdt_disable();

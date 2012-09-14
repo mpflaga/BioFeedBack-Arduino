@@ -16,6 +16,7 @@ MPF
 
 SFEMP3Shield MP3player;
 RN42 Bluetooth;
+GraphPatterns	BarGraph;
 
 byte temp;
 byte result;
@@ -78,6 +79,10 @@ void setup() {
 
 	Bluetooth.begin();
 	Serial.println("BlueTooth Test, Type anything.");
+
+	BarGraph.CylonEye(CYLON_DELAY, 1);
+	BarGraph.all_clear();
+
 }
 
 void loop(){
