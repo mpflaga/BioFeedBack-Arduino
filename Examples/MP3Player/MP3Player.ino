@@ -1,6 +1,6 @@
 /*
 MPF
- */
+*/
 
 #include <SPI.h>
 
@@ -16,7 +16,6 @@ MPF
 
 SFEMP3Shield MP3player;
 RN42 Bluetooth;
-GraphPatterns	BarGraph;
 
 byte temp;
 byte result;
@@ -48,8 +47,8 @@ void setup() {
 	DigitalPOT.SetDigitalPOT(TMPOFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 	DigitalPOT.SetDigitalPOT(GSROFFSET_CS, map(50, 0, 100, 0, MCP4013_FULL_SCALE));
 
-  Serial.begin(57600); //Use serial for debugging
-  Serial3.begin(57600); //Use serial for debugging
+	Serial.begin(57600); //Use serial for debugging
+	Serial3.begin(57600); //Use serial for debugging
 
 	PreOperatingSelfTest.post();
 
@@ -61,33 +60,35 @@ void setup() {
 	loadConfig();
 	digitalWriteFast(AUDIO_AMP_SHTDWN, HIGH); //Enable Audio Output
 
-  //boot up the MP3 Player Shield
-  result = MP3player.begin();
-  //check result, see readme for error codes.
-  if(result != 0) {
-    Serial.print("Error code: ");
-    Serial.print(result);
-    Serial.println(" when trying to start MP3 player");
-    }
-  if (MP3player.ADMixerLoad(STEREO) == 0) MP3player.ADMixerVol(-3);
+	//boot up the MP3 Player Shield
+	result = MP3player.begin();
+	//check result, see readme for error codes.
+	if(result != 0) {
+		Serial.print("Error code: ");
+		Serial.print(result);
+		Serial.println(" when trying to start MP3 player");
+	}
+	if (MP3player.ADMixerLoad(STEREO) == 0) {
+		MP3player.ADMixerVol(-3);
+	}
 
-  Serial.println("Playing First Track");
+	Serial.println("Playing First Track");
 	MP3player.playTrack(1);
-  Serial.println("Send a number 1-9 to play a track or s to stop playing");
-  Serial.print("MP3_DREQINT = ");
-  Serial.println(MP3_DREQINT, DEC);
+	Serial.println("Send a number 1-9 to play a track or s to stop playing");
+	Serial.print("MP3_DREQINT = ");
+	Serial.println(MP3_DREQINT, DEC);
 
 	Bluetooth.begin();
 	Serial.println("BlueTooth Test, Type anything.");
 
-	BarGraph.CylonEye(CYLON_DELAY, 1);
-	BarGraph.all_clear();
+	HW_configuration.CylonEye();
 
 }
 
-void loop(){
+void loop()
+{
 
-//MPF STILL TRYING TO WORK OUT THE BT
+	//MPF STILL TRYING TO WORK OUT THE BT
 	while (Serial3.available()) {
 		Serial.write((uint8_t ) Serial3.read());
 	}
@@ -95,145 +96,123 @@ void loop(){
 //	while (Serial.available()) {
 //		Serial3.write((uint8_t ) Serial.read());
 //	}
-//	return;
 
-  if(Serial.available()){
-    temp = Serial.read();
+	if(Serial.available()){
+		temp = Serial.read();
 		Serial3.write(temp);
-    
-    Serial.print("Received command: ");
-    Serial.write(temp);
-    Serial.println(" ");
-    
-    //if s, stop the current track
-    if (temp == 's') {
-      MP3player.stopTrack();
-    }
-      
-    else if (temp >= '1' && temp <= '9'){
-      //convert ascii numbers to real numbers
-      temp = temp - 48;
-      
-      //tell the MP3 Shield to play a track
-      result = MP3player.playTrack(temp);
-      
-      //check result, see readme for error codes.
-      if(result != 0) {
-        Serial.print("Error code: ");
-        Serial.print(result);
-        Serial.println(" when trying to play track");
-        }
-      
-      Serial.println("Playing:");
-      
-      //we can get track info by using the following functions and arguments
-      //the functions will extract the requested information, and put it in the array we pass in  
-      MP3player.trackTitle((char*)&title);
-      MP3player.trackArtist((char*)&artist);
-      MP3player.trackAlbum((char*)&album);
-      
-      //print out the arrays of track information
-      Serial.write((byte*)&title, 30);
-      Serial.println();
-      Serial.print("by:  ");
-      Serial.write((byte*)&artist, 30);
-      Serial.println();
-      Serial.print("Album:  ");
-      Serial.write((byte*)&album, 30);
-      Serial.println();
-      
-      }
-    
-    /* Alterativly, you could call a track by it's file name by using playMP3(filename); 
-       But you must stick to 8.1 filenames, only 8 characters long, and 3 for the extension */
-    
-    else if (temp == 'f') {
-      //create a string with the filename
-      char trackName[] = "carly0.mid";
-      
-      //tell the MP3 Shield to play that file
-      result = MP3player.playMP3(trackName);
-      
-      //check result, see readme for error codes.
-      if(result != 0) {
-        Serial.print("Error code: ");
-        Serial.print(result);
-        Serial.println(" when trying to play track");
-        }
-      }
-      
-  }
-  
-//  delay(100);
-  
 
+		Serial.print("Received command: ");
+		Serial.write(temp);
+		Serial.println(" ");
 
+		//if s, stop the current track
+		if (temp == 's') {
+			MP3player.stopTrack();
+		}
 
+		else if (temp >= '1' && temp <= '9'){
+			//convert ascii numbers to real numbers
+			temp = temp - 48;
 
-//
-//	delay(1000);
-////	Serial3.print("$$$");
-//	Serial.print("BT_CD = ");
-//	Serial.println(digitalReadFast(BT_CD));
-////	while (!digitalReadFast(BT_CD));
-////	Serial.println("BT Connect Detected.");
-////	Serial.print("BT_CD = ");
-////	Serial.println(digitalReadFast(BT_CD));
-//
-////	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
-////		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
-////		Serial.println("Sensor Voltage = ");
-////		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
-////			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
-////			Serial.println(" volts");
-////			delay(100);
-////		}
-////		delay(2000);
-////	}
-//
-//  while(1) {
-//
+			//tell the MP3 Shield to play a track
+			result = MP3player.playTrack(temp);
+
+			//check result, see readme for error codes.
+			if(result != 0) {
+				Serial.print("Error code: ");
+				Serial.print(result);
+				Serial.println(" when trying to play track");
+			}
+
+			Serial.println("Playing:");
+
+			//we can get track info by using the following functions and arguments
+			//the functions will extract the requested information, and put it in the array we pass in
+			MP3player.trackTitle((char*)&title);
+			MP3player.trackArtist((char*)&artist);
+			MP3player.trackAlbum((char*)&album);
+
+			//print out the arrays of track information
+			Serial.write((byte*)&title, 30);
+			Serial.println();
+			Serial.print("by:  ");
+			Serial.write((byte*)&artist, 30);
+			Serial.println();
+			Serial.print("Album:  ");
+			Serial.write((byte*)&album, 30);
+			Serial.println();
+
+		}
+
+		/* Alterativly, you could call a track by it's file name by using playMP3(filename);
+		But you must stick to 8.1 filenames, only 8 characters long, and 3 for the extension */
+
+		else if (temp == 'f') {
+			//create a string with the filename
+			char trackName[] = "carly0.mid";
+
+			//tell the MP3 Shield to play that file
+			result = MP3player.playMP3(trackName);
+
+			//check result, see readme for error codes.
+			if(result != 0) {
+				Serial.print("Error code: ");
+				Serial.print(result);
+				Serial.println(" when trying to play track");
+			}
+		}
+
+	}
+
+//	for (uint8_t  thisGain = 0; thisGain < PGA_Gains_count; thisGain++) {
+//		DigitalPGA.WriteRegister(GSRPGA_CS, thisGain);
+//		Serial.println("Sensor Voltage = ");
+//		for (uint8_t  thisCount = 0; thisCount < 5; thisCount += 1)  {
+//			Serial.print(Sensor.GetTMPVoltage(ANA_GSR), 3); // two decimal places
+//			Serial.println(" volts");
+//			delay(100);
+//		}
+//		delay(2000);
+//	}
 
 	keypad();
 }
 
 void loadConfig() {
-  // To make sure there are EEPROM_configuration, and they are YOURS!
-  // If nothing is found it will use the default EEPROM_configuration.
-  if (//EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 1) == EEPROM_configuration.version_of_program[3] // this is '\0'
-      EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 2) == EEPROM_configuration.version_of_program[2] &&
-      EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 3) == EEPROM_configuration.version_of_program[1] &&
-      EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 4) == EEPROM_configuration.version_of_program[0])
-  { // reads EEPROM_configuration from EEPROM
-  	Serial.println("EEPROM being loaded.");
-    for (unsigned int t=0; t<sizeof(EEPROM_configuration); t++)
-      *((char*)&EEPROM_configuration + t) = EEPROM.read(CONFIG_START + t);
-  } else {
-    // EEPROM_configuration aren't valid! will overwrite with default EEPROM_configuration
-    Serial.println("EEPROM being defaulted.");
-    saveConfig();
-  }
+	// To make sure there are EEPROM_configuration, and they are YOURS!
+	// If nothing is found it will use the default EEPROM_configuration.
+	if ( //EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 1) == EEPROM_configuration.version_of_program[3] // this is '\0'
+		EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 2) == EEPROM_configuration.version_of_program[2] &&
+		EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 3) == EEPROM_configuration.version_of_program[1] &&
+		EEPROM.read(CONFIG_START + sizeof(EEPROM_configuration) - 4) == EEPROM_configuration.version_of_program[0]) { // reads EEPROM_configuration from EEPROM
+		Serial.println("EEPROM being loaded.");
+		for (unsigned int t=0; t<sizeof(EEPROM_configuration); t++)
+		*((char*)&EEPROM_configuration + t) = EEPROM.read(CONFIG_START + t);
+	} else {
+		// EEPROM_configuration aren't valid! will overwrite with default EEPROM_configuration
+		Serial.println("EEPROM being defaulted.");
+		saveConfig();
+	}
 
-#ifdef DEBUG
+	#ifdef DEBUG
 	Serial.print("Volume increamented to -");
 	Serial.print((float) EEPROM_configuration.vol_l/2, 1);
 	Serial.print("/ -");
 	Serial.print((float) EEPROM_configuration.vol_r/2, 1);
 	Serial.println("dB");
-#endif
+	#endif
 }
 
 void saveConfig() {
 	Serial.println("EEPROM being saved.");
-  for (unsigned int t=0; t<sizeof(EEPROM_configuration); t++)
-  { // writes to EEPROM
-    EEPROM.write(CONFIG_START + t, *((char*)&EEPROM_configuration + t));
-    // and verifies the data
-    if (EEPROM.read(CONFIG_START + t) != *((char*)&EEPROM_configuration + t))
-    {
-      // error writing to EEPROM
-    }
-  }
+	for (unsigned int t=0; t<sizeof(EEPROM_configuration); t++)
+	{ // writes to EEPROM
+		EEPROM.write(CONFIG_START + t, *((char*)&EEPROM_configuration + t));
+		// and verifies the data
+		if (EEPROM.read(CONFIG_START + t) != *((char*)&EEPROM_configuration + t)) {
+			// error writing to EEPROM
+		}
+	}
 }
 
 Bounce b_ch1       = Bounce( B_CH1      , BUTTON_DEBOUNCE_PERIOD );
@@ -247,114 +226,96 @@ Bounce b_disp      = Bounce( B_DISP     , BUTTON_DEBOUNCE_PERIOD );
 Bounce b_onoff_sns = Bounce( B_ONOFF_SNS, BUTTON_DEBOUNCE_PERIOD );
 
 void keypad() {
-		if (b_cntr.update()) {
-			if (b_cntr.fallingEdge())	{
-				Serial3.println("b_cntr pressed");
-				Serial3.print("Battery Voltage = ");
-				Serial3.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-				Serial3.println(" volts");
-//				saveConfig();
-				if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
-				  HW_configuration.Reset();
-				}
+	if (b_cntr.update()) {
+		if (b_cntr.fallingEdge())	{
+			Serial3.println("b_cntr pressed");
+			Serial3.print("Battery Voltage = ");
+			Serial3.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+			Serial3.println(" volts");
+			//				saveConfig();
+			if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
+				HW_configuration.Reset();
 			}
 		}
-		if (b_onoff_sns.update()) {
-			if (b_onoff_sns.fallingEdge())	{
-				Serial3.println("b_onoff_sns pressed");
-			  HW_configuration.Reset();
-			}
+	}
+	if (b_onoff_sns.update()) {
+		if (b_onoff_sns.fallingEdge())	{
+			Serial3.println("b_onoff_sns pressed");
+			HW_configuration.Reset();
 		}
-		if (b_ch1.update()) {
-			if (b_ch1.fallingEdge())	{
-				Serial3.println("b_ch1 pressed");
-			}
+	}
+	if (b_ch1.update()) {
+		if (b_ch1.fallingEdge())	{
+			Serial3.println("b_ch1 pressed");
 		}
-		if (b_dwn.update()) {
-			if (b_dwn.fallingEdge())	{
-				Serial3.println("b_dwn pressed");
-				EEPROM_configuration.vol_l--;
-				if (EEPROM_configuration.vol_l <= 1) EEPROM_configuration.vol_l = 1;
-				EEPROM_configuration.vol_r--;
-				if (EEPROM_configuration.vol_r <= 1) EEPROM_configuration.vol_r = 1;
-#ifdef DEBUG
-				Serial3.print("Volume decreamented to -");
-				Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
-				Serial3.print("/ -");
-				Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
-				Serial3.println("dB");
-#endif
-				saveConfig();
-				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("/vs1053/sounds/ding.mp3");
-				b_dwn.rebounce(250);
+	}
+	if (b_dwn.update()) {
+		if (b_dwn.fallingEdge())	{
+			Serial3.println("b_dwn pressed");
+			EEPROM_configuration.vol_l--;
+			if (EEPROM_configuration.vol_l <= 1) {
+				EEPROM_configuration.vol_l = 1;
 			}
-		}
-		if (b_up.update()) {
-			if (b_up.fallingEdge())	{
-				Serial3.println("b_up pressed");
-				EEPROM_configuration.vol_l++;
-				if (EEPROM_configuration.vol_l >= 254) EEPROM_configuration.vol_l = 254;
-				EEPROM_configuration.vol_r++;
-				if (EEPROM_configuration.vol_r >= 254) EEPROM_configuration.vol_r = 254;
-#ifdef DEBUG
-				Serial3.print("Volume increamented to -");
-				Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
-				Serial3.print("/ -");
-				Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
-				Serial3.println("dB");
-#endif
-				saveConfig();
-				MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
-				MP3player.playMP3("/vs1053/sounds/ding.mp3");
+			EEPROM_configuration.vol_r--;
+			if (EEPROM_configuration.vol_r <= 1) {
+				EEPROM_configuration.vol_r = 1;
 			}
-			b_up.rebounce(250);
+			#ifdef DEBUG
+			Serial3.print("Volume decreamented to -");
+			Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
+			Serial3.print("/ -");
+			Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
+			Serial3.println("dB");
+			#endif
+			saveConfig();
+			MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+			MP3player.playMP3("/vs1053/sounds/ding.mp3");
+			b_dwn.rebounce(250);
 		}
-		if (b_thr.update()) {
-			if (b_thr.fallingEdge())	{
-				Serial3.println("b_thr pressed");
-				MP3player.playMP3("/vs1053/sounds/womb.mp3");
+	}
+	if (b_up.update()) {
+		if (b_up.fallingEdge())	{
+			Serial3.println("b_up pressed");
+			EEPROM_configuration.vol_l++;
+			if (EEPROM_configuration.vol_l >= 254) {
+				EEPROM_configuration.vol_l = 254;
 			}
-		}
-		if (b_ch2.update()) {
-			if (b_ch2.fallingEdge())	{
-				Serial3.println("b_ch2 pressed");
+			EEPROM_configuration.vol_r++;
+			if (EEPROM_configuration.vol_r >= 254) {
+				EEPROM_configuration.vol_r = 254;
 			}
+			#ifdef DEBUG
+			Serial3.print("Volume increamented to -");
+			Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
+			Serial3.print("/ -");
+			Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
+			Serial3.println("dB");
+			#endif
+			saveConfig();
+			MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+			MP3player.playMP3("/vs1053/sounds/ding.mp3");
 		}
-		if (b_audio.update()) {
-			if (b_audio.fallingEdge())	{
-				Serial3.println("b_audio pressed");
-			}
+		b_up.rebounce(250);
+	}
+	if (b_thr.update()) {
+		if (b_thr.fallingEdge())	{
+			Serial3.println("b_thr pressed");
+			MP3player.playMP3("/vs1053/sounds/womb.mp3");
 		}
-		if (b_disp.update()) {
-			if (b_disp.fallingEdge())	{
-				Serial3.println("b_disp pressed");
-			}
+	}
+	if (b_ch2.update()) {
+		if (b_ch2.fallingEdge())	{
+			Serial3.println("b_ch2 pressed");
 		}
-
-//		// Keyboard Test
-//		if ( (digitalRead(B_CH1) == LOW) ||
-//		(digitalReadFast(B_DISP) == LOW) ||
-//		(digitalReadFast(B_DWN) == LOW) ||
-//		(digitalReadFast(B_UP) == LOW) ||
-//		(digitalReadFast(B_CH2) == LOW) ||
-//		(digitalReadFast(B_AUDIO) == LOW) ||
-//		(digitalReadFast(B_CNTR) == LOW) ||
-//		(digitalReadFast(B_THR) == LOW) ||
-//		(digitalReadFast(B_ONOFF_SNS) == LOW) )
-//		{
-//			digitalWriteFast(pwm_led_bar[0], LOW);
-//		}
-//		else {
-//			digitalWriteFast(pwm_led_bar[0], HIGH);
-//		}
-//
-//		for (uint8_t  thisPin = 0; thisPin < button_test_leds_count; thisPin += 2)  {
-//			if (digitalReadFast(button_test_leds[thisPin]) == HIGH) {
-//				digitalWriteFast(button_test_leds[thisPin+1], HIGH);
-//			}
-//			else {
-//				digitalWriteFast(button_test_leds[thisPin+1], LOW);
-//			}
-//		}
+	}
+	if (b_audio.update()) {
+		if (b_audio.fallingEdge())	{
+			Serial3.println("b_audio pressed");
+		}
+	}
+	if (b_disp.update()) {
+		if (b_disp.fallingEdge())	{
+			Serial3.println("b_disp pressed");
+		}
+	}
 }

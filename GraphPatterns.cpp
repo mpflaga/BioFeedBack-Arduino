@@ -37,8 +37,8 @@ void GraphPatterns::Fill_from_Fill_from_Right(int8_t value, int8_t offset) {
 	}
 }
 
-void GraphPatterns::spot_from_left(int8_t value, int8_t offset, int8_t scale) {
-	int8_t graphsize = pwm_led_bar_count / scale;
+void GraphPatterns::spot_from_left(int8_t value, int8_t offset) {
+	int8_t graphsize = pwm_led_bar_count / tscale;
 	//if (graphsize % 2) graphsize--;
 	value = map(value, 1, 100, 0, graphsize-1);
 	for (uint8_t thisPin = 0; thisPin < graphsize; thisPin++) {
