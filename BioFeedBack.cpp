@@ -14,8 +14,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Arduino.h"
 #include <digitalWriteFast.h>
 #include <SPI.h>
-#include <SdFat.h>
-#include <SdFatUtil.h>
 #include <Bounce.h>
 #include <GraphPatterns.h>
 
@@ -72,7 +70,7 @@ void DigitalPGA::WriteRegister(uint8_t chipSelectPin, int8_t Gain) {
 	SPI.transfer(Gain); //Write Data byte
 	digitalWrite(chipSelectPin, HIGH); //Select control
 	#ifdef DEBUG
-	Serial.print("PGA GAIN = 8");
+	Serial.print(F("PGA GAIN = 8"));
 	Serial.println(Gain, DEC);
 	#endif
 }
@@ -188,7 +186,7 @@ void HW_configuration::BoardsPinMode () {
 	pinMode(MP3_XDCS, OUTPUT);
 	pinMode(MP3_DREQ, INPUT);
 	pinMode(MP3_RESET, OUTPUT);
-	pinMode(SDCARD_CS, OUTPUT);
+	pinMode(SD_SEL, OUTPUT);
 
 	pinMode(AUDIO_AMP_SHTDWN, OUTPUT);
 	// May not need to set PinMode of these UART pins - MPF
@@ -227,7 +225,7 @@ void HW_configuration::BoardsPinMode () {
 
 	digitalWriteFast(MP3_XCS, HIGH);   //Initially Deselect Control
 	digitalWriteFast(MP3_XDCS, HIGH);  //Initially Deselect Data
-	digitalWriteFast(SDCARD_CS, HIGH); //Initially Deselect SD Card
+	digitalWriteFast(SD_SEL, HIGH); //Initially Deselect SD Card
 	digitalWriteFast(TMPOFFSET_CS, HIGH);  //Initially Deselect Data
 	digitalWriteFast(MP3_RESET, LOW);  //Initially Put VS1053 into hardware reset
 

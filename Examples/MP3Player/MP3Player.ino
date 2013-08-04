@@ -4,7 +4,6 @@ MPF
 
 #include <SPI.h>
 
-//Add the SdFat Libraries
 #include <digitalWriteFast.h>
 #include <SdFat.h>
 #include <BioFeedBack.h>
@@ -14,6 +13,9 @@ MPF
 #include <EEPROM.h>
 #include <rn42.h>
 
+#define SerialX Serial
+
+SdFat sd;
 SFEMP3Shield MP3player;
 RN42 Bluetooth;
 
@@ -60,6 +62,10 @@ void setup() {
 	loadConfig();
 	digitalWriteFast(AUDIO_AMP_SHTDWN, HIGH); //Enable Audio Output
 
+	//Initialize the SdCard.
+	if(!sd.begin(SD_SEL, SPI_HALF_SPEED)) sd.initErrorHalt();
+	if(!sd.chdir("/")) sd.errorHalt("sd.chdir");
+
 	//boot up the MP3 Player Shield
 	result = MP3player.begin();
 	//check result, see readme for error codes.
@@ -68,7 +74,7 @@ void setup() {
 		Serial.print(result);
 		Serial.println(" when trying to start MP3 player");
 	}
-	if (MP3player.ADMixerLoad(STEREO) == 0) {
+	if (MP3player.ADMixerLoad("admxster.053") == 0) {
 		MP3player.ADMixerVol(-3);
 	}
 
@@ -228,10 +234,10 @@ Bounce b_onoff_sns = Bounce( B_ONOFF_SNS, BUTTON_DEBOUNCE_PERIOD );
 void keypad() {
 	if (b_cntr.update()) {
 		if (b_cntr.fallingEdge())	{
-			Serial3.println("b_cntr pressed");
-			Serial3.print("Battery Voltage = ");
-			Serial3.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
-			Serial3.println(" volts");
+			SerialX.println("b_cntr pressed");
+			SerialX.print("Battery Voltage = ");
+			SerialX.print(Sensor.GetBatteryVoltage(ANA_BATTERY), 2); // two decimal places
+			SerialX.println(" volts");
 			//				saveConfig();
 			if (Sensor.GetBatteryVoltage(ANA_BATTERY) < 2) {
 				HW_configuration.Reset();
@@ -240,18 +246,18 @@ void keypad() {
 	}
 	if (b_onoff_sns.update()) {
 		if (b_onoff_sns.fallingEdge())	{
-			Serial3.println("b_onoff_sns pressed");
+			SerialX.println("b_onoff_sns pressed");
 			HW_configuration.Reset();
 		}
 	}
 	if (b_ch1.update()) {
 		if (b_ch1.fallingEdge())	{
-			Serial3.println("b_ch1 pressed");
+			SerialX.println("b_ch1 pressed");
 		}
 	}
 	if (b_dwn.update()) {
 		if (b_dwn.fallingEdge())	{
-			Serial3.println("b_dwn pressed");
+			SerialX.println("b_dwn pressed");
 			EEPROM_configuration.vol_l--;
 			if (EEPROM_configuration.vol_l <= 1) {
 				EEPROM_configuration.vol_l = 1;
@@ -261,21 +267,21 @@ void keypad() {
 				EEPROM_configuration.vol_r = 1;
 			}
 			#ifdef DEBUG
-			Serial3.print("Volume decreamented to -");
-			Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
-			Serial3.print("/ -");
-			Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
-			Serial3.println("dB");
+			SerialX.print("Volume decreamented to -");
+			SerialX.print((float) EEPROM_configuration.vol_l/2, 1);
+			SerialX.print("/ -");
+			SerialX.print((float) EEPROM_configuration.vol_r/2, 1);
+			SerialX.println("dB");
 			#endif
 			saveConfig();
-			MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+			MP3player.setVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
 			MP3player.playMP3("/vs1053/sounds/ding.mp3");
 			b_dwn.rebounce(250);
 		}
 	}
 	if (b_up.update()) {
 		if (b_up.fallingEdge())	{
-			Serial3.println("b_up pressed");
+			SerialX.println("b_up pressed");
 			EEPROM_configuration.vol_l++;
 			if (EEPROM_configuration.vol_l >= 254) {
 				EEPROM_configuration.vol_l = 254;
@@ -285,37 +291,37 @@ void keypad() {
 				EEPROM_configuration.vol_r = 254;
 			}
 			#ifdef DEBUG
-			Serial3.print("Volume increamented to -");
-			Serial3.print((float) EEPROM_configuration.vol_l/2, 1);
-			Serial3.print("/ -");
-			Serial3.print((float) EEPROM_configuration.vol_r/2, 1);
-			Serial3.println("dB");
+			SerialX.print("Volume increamented to -");
+			SerialX.print((float) EEPROM_configuration.vol_l/2, 1);
+			SerialX.print("/ -");
+			SerialX.print((float) EEPROM_configuration.vol_r/2, 1);
+			SerialX.println("dB");
 			#endif
 			saveConfig();
-			MP3player.SetVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
+			MP3player.setVolume(EEPROM_configuration.vol_l, EEPROM_configuration.vol_r);
 			MP3player.playMP3("/vs1053/sounds/ding.mp3");
 		}
 		b_up.rebounce(250);
 	}
 	if (b_thr.update()) {
 		if (b_thr.fallingEdge())	{
-			Serial3.println("b_thr pressed");
+			SerialX.println("b_thr pressed");
 			MP3player.playMP3("/vs1053/sounds/womb.mp3");
 		}
 	}
 	if (b_ch2.update()) {
 		if (b_ch2.fallingEdge())	{
-			Serial3.println("b_ch2 pressed");
+			SerialX.println("b_ch2 pressed");
 		}
 	}
 	if (b_audio.update()) {
 		if (b_audio.fallingEdge())	{
-			Serial3.println("b_audio pressed");
+			SerialX.println("b_audio pressed");
 		}
 	}
 	if (b_disp.update()) {
 		if (b_disp.fallingEdge())	{
-			Serial3.println("b_disp pressed");
+			SerialX.println("b_disp pressed");
 		}
 	}
 }

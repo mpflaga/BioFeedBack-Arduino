@@ -61,12 +61,14 @@
 #define I2C_SDA             20      //PD1 input
 #define I2C_SCL             21      //PD0 input
 
-//#if defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
-#define MP3_XCS             67      //PK5 Output, Active Low,  Control Chip Select Pin (for accessing SPI Control/Status registers)
-#define MP3_XDCS            68      //PK6 Output, Active Low,  Data Chip Select / BSYNC Pin
-#define MP3_DREQ            66      //PK4 Input , Active High, Data Request Pin: Player asks for more data
-#define MP3_RESET           65      //PK3 Output, Active Low,  Reset is active low
-#define SDCARD_CS           76      //PJ6 Output, Active Low
+// VS1053 MP3 Player and SDcard pins (defined elsewhere, only documentation)
+  #define MP3_XCS             67      //PK5 Output, Active Low,  Control Chip Select Pin (for accessing SPI Control/Status registers)
+  #define MP3_XDCS            68      //PK6 Output, Active Low,  Data Chip Select / BSYNC Pin
+  #define MP3_DREQ            66      //PK4 Input , Active High, Data Request Pin: Player asks for more data
+  #define MP3_DREQINT          5      //Corresponding INTx for DREQ pin
+  #define MP3_RESET           65      //PK3 Output, Active Low,  Reset is active low
+  #define SD_SEL              76      //PJ6 Output, Active Low
+
 
 #define AUDIO_AMP_SHTDWN    85 //PE2 Output, Active Low, Disables the Amp
 

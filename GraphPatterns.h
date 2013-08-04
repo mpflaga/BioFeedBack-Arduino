@@ -33,6 +33,12 @@ class GraphPatterns
 		half
 	}/*tscale*/ ;
 	
+	enum led_pattern {
+		cyloneye = 0,
+		cylon,
+		slider
+	} pattern;
+
 	scale getscale() {return tscale;};
 	void setscale(scale value) {tscale = value;};
 	void Fill_from_Fill_from_Left(int8_t, int8_t);
@@ -42,9 +48,16 @@ class GraphPatterns
 	void all_on();
 	void all_clear();
 	void CylonEye(uint16_t, uint8_t);
+	void update();
+	void begin(uint16_t);
 	
 	private:
 	scale tscale;
+	uint8_t led_pos;
+	int16_t lastUpdateTime;
+	int16_t upDateDelay;
+	void printled(char*);
 };
+
 
 #endif  // End GraphPatterns_h
